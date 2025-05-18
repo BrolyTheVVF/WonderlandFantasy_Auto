@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.004
+// @version      2025-05-18.005
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -26,6 +26,7 @@ game.auto.current = {
 	"tickDelay": 0,
 };
 game.auto.setting = {
+	"fixedSite": false,
 	"useSoulGathering": false,
 };
 game.auto.slots = {
@@ -53,6 +54,14 @@ game.auto.buildInterface = function(){
 						
 					+ '</div>'
 					+ '<div class="auto-start">'
+						+ '<div class="auto-setting-fixedSite">'
+							+ '<div class="auto-setting-fs-box">'
+								+ '<input type="radio" name="fixedSite" value="0" checked /><span class="auto-fs-label auto-fs-label-no"></span>'
+							+ '</div>'
+							+ '<div class="auto-setting-fs-box">'
+								+ '<input type="radio" name="fixedSite" value="1" /><span class="auto-fs-label auto-fs-label-yes"></span>'
+							+ '</div>'
+						+ '</div>'
 						+ '<div class="ui-btn-table-sm" onclick="game.auto.toggleStart();">'
 							+ '<div class="ui-btn-table-sm-left"></div>'
 							+ '<div class="ui-btn-table-sm-middle auto-start-btn">' + LC_TEXT(game.lang, 'UI.windows.auto.btn.start') + '</div>'
@@ -70,7 +79,27 @@ game.auto.buildInterface = function(){
 				+ '</div>'
 				// TAB 2
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB2" style="display: none;">'
-					
+					+ '<div class="auto-p2-head">'
+						+ '<div class="auto-p2h-hp">'
+						+ '</div>'
+						+ '<div class="auto-p2h-mp">'
+							
+						+ '</div>'
+					+ '</div>'
+					+ '<div class="auto-p2-body">'
+						+ '<div class="auto-p2b-left">'
+						+ '</div>'
+						+ '<div class="auto-p2b-right">'
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "1").outerHTML
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "2").outerHTML
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "3").outerHTML
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "4").outerHTML
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "5").outerHTML
+							+ HTML_UI_BuildEmptySlot("", "auto-skill", "6").outerHTML
+						+ '</div>'
+					+ '</div>'
+					+ '<div class="auto-p2-foot">'
+					+ '</div>'
 				+ '</div>'
 				// TAB 3
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB3" style="display: none;">'
@@ -94,6 +123,7 @@ game.auto.buildInterface = function(){
 		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(0, 0, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
+		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
 		
 		+ '</style>'
 	));
@@ -129,6 +159,9 @@ game.auto.refreshUI_Lang = function(){
 	
 	$("#AUTO_UI_TAB1 .auto-setting-attackElite .input-label").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.attackElite'));
 	$("#AUTO_UI_TAB1 .auto-setting-attackChief .input-label").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.attackChief'));
+	
+	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-no").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.no'));
+	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-yes").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.yes'));
 };
 
 game.auto.refreshUI_Npcs = function(){
@@ -252,7 +285,11 @@ game.auto.onTickEvent.idle = function(){
 	if(oClosest){
 		console.log("Auto: new target select [" + oClosest.uid + "]");
 		game.setLockON(oClosest.uid, true, "auto");
-		game.auto.setState("reaching");
+		if(game.auto.setting.fixedSite){
+			game.auto.setState("combat");
+		}else{
+			game.auto.setState("reaching");
+		}
 	}
 };
 game.auto.onTickEvent.combat = function(){
@@ -261,7 +298,12 @@ game.auto.onTickEvent.combat = function(){
 		return;
 	}
 	if(!game.auto.Combat_isInRange()){
-		game.auto.setState("reaching");
+		if(game.auto.setting.fixedSite){
+			game.player.lockOn = false;
+			game.auto.setState("idle");
+		}else{
+			game.auto.setState("reaching");
+		}
 		return;
 	}
 	let sSkillBase = game.player.classe + "_base";
@@ -348,7 +390,10 @@ game.auto.Combat_getClosestEntity = function(){
 			if(oEntity.isChief && !game.auto.current.attackChief){
 				continue;
 			}
-			
+			//If only fixed site and entity is not in range
+			if(game.auto.setting.fixedSite && !game.auto.Combat_isInRange(oEntity)){
+				continue;
+			}
 			let nCurDist = game.utilities.distanceBetween(game.player, oEntity);
 			if(nCurDist < nClosest){
 				nClosest = nCurDist;
@@ -359,10 +404,14 @@ game.auto.Combat_getClosestEntity = function(){
 	if(sUID && nClosest){
 		return game.entities[sUID];
 	}
+	if(game.auto.setting.fixedSite){
+		//If fixed site and didn't found any entities, no need to spam the entity resreach, wait a bit for mobs to either respawn or move
+		game.auto.current.tickDelay = Date.now() + 500;
+	}
 };
-game.auto.Combat_isInRange = function(){
+game.auto.Combat_isInRange = function(oEntity){
 	let sSkillBase = game.player.classe + "_base";
-	if(!game.player.skills[sSkillBase].inRange(game.player, game.player.lockOn)){
+	if(!game.player.skills[sSkillBase].inRange(game.player, ((oEntity)?oEntity:game.player.lockOn))){
 		return false;
 	}
 	
@@ -376,7 +425,7 @@ game.auto.Combat_isInRange = function(){
 		if(!oProto.targetEnnemy){
 			continue;
 		}
-		if(!oSkill.inRange(game.player, game.player.lockOn)){
+		if(!oSkill.inRange(game.player, ((oEntity)?oEntity:game.player.lockOn))){
 			return false;
 		}
 	};
@@ -495,6 +544,8 @@ $(document).ready(() => {
 	
 	locale["UI.windows.auto.setting.attackElite"] = {"en": "Attack elites", "fr": "Attaquer les elites"};
 	locale["UI.windows.auto.setting.attackChief"] = {"en": "Attack chiefs", "fr": "Attaquer les chefs"};
+	locale["UI.windows.auto.setting.fixedSite.no"] = {"en": "Move and attack", "fr": "Attaquer et se déplacer"};
+	locale["UI.windows.auto.setting.fixedSite.yes"] = {"en": "Attack & don't move", "fr": "Attaquer et ne pas se déplacer"};
 	
 	game.auto.onTick();
 });
