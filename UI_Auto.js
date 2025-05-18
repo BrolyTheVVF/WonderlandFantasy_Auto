@@ -154,10 +154,10 @@ game.auto.pullWindow = function(){
 
 $(document).ready(() => {
 	game.UI.list.push(game.auto);
-	locale["UI.windows.auto.title"] : {"en": "Auto-pilot", "fr": "Pilote automatique"};
-	locale["UI.windows.auto.tab.auto"] : {"en": "Auto-pilot", "fr": "Pilote automatique"};
-	locale["UI.windows.auto.tab.settings"] : {"en": "Settings", "fr": "Paramètres"};
-	locale["UI.windows.auto.tab.monsters"] : {"en": "Monsters", "fr": "Monstres"};
+	locale["UI.windows.auto.title"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
+	locale["UI.windows.auto.tab.auto"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
+	locale["UI.windows.auto.tab.settings"] = {"en": "Settings", "fr": "Paramètres"};
+	locale["UI.windows.auto.tab.monsters"] = {"en": "Monsters", "fr": "Monstres"};
 	
 });
 
