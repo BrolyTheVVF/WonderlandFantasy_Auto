@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.007
+// @version      2025-05-18.008
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -133,6 +133,28 @@ game.auto.buildInterface = function(){
 	
 	// game.mouse.onMouseMove();
 	// game.mouse.onMouseDown();
+	
+	document.addEventListener("keydown", function(event){
+		if(!event.key){
+			console.warn('document.addEventListener("keydown") => event has no "key" index', event);
+			return;
+		}
+		let sKey = event.key.toLowerCase();
+		let sCode = event.code.toLowerCase();
+		let oTarget = event.target;
+		if(oTarget && game.chat && game.chat.HTML && game.chat.HTML.input && oTarget.id == game.chat.HTML.input.attr("id")){
+			return true;
+		}
+		if(oTarget && ["input", "select", "textarea"].indexOf(oTarget.tagName.toLowerCase()) >= 0){
+			if(oTarget.tagName.toLowerCase() != "input" || ["checkbox", "radio"].indexOf(oTarget.getAttribute("type")) == -1 ){
+				return;
+			}
+		}
+		
+		if(sKey === "n"){
+			game.auto.toggleStart();
+		}
+	});
 	
 	game.auto.__isBuild = true;
 };
@@ -442,10 +464,11 @@ game.auto.Combat_getClosestEntity = function(){
 	if(sUID && nClosest){
 		return game.entities[sUID];
 	}
-	if(game.auto.setting.fixedSite){
+	game.auto.current.tickDelay = Date.now() + 500;
+	// if(game.auto.setting.fixedSite){
 		//If fixed site and didn't found any entities, no need to spam the entity resreach, wait a bit for mobs to either respawn or move
-		game.auto.current.tickDelay = Date.now() + 500;
-	}
+	// }
+	return false;
 };
 game.auto.Combat_isInRange = function(oEntity){
 	let sSkillBase = game.player.classe + "_base";
