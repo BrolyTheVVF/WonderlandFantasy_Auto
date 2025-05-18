@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.002
+// @version      2025-05-18.004
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -24,6 +24,9 @@ game.auto.current = {
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
+};
+game.auto.setting = {
+	"useSoulGathering": false,
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -398,6 +401,11 @@ game.auto.pickupItems = function(){
 	game._emit("pickupMultipleItem", [l]);
 };
 game.auto.pickupSouls = function(){
+	if(!game.SOUL_GATHERING.isActive() && game.auto.setting.useSoulGathering && game.player.specialsCount.SOUL_GATHERING > 0){
+		game.SOUL_GATHERING.activate();
+		game.auto.current.tickDelay = Date.now() + 500;
+		return;
+	}
 	if(game.SOUL_GATHERING.isActive() && game.player.specialsCount.SOUL_GATHERING_LAST !== false){
 		let nColor = game.player.specialsCount.SOUL_GATHERING_LAST;
 		if(!nColor){
