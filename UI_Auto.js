@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.008
+// @version      2025-05-18.009
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -25,6 +25,7 @@ game.auto.current = {
 	"state": "idle",
 	"tickDelay": 0,
 	
+	//Change the way ignored NPC works so they only get ingnored for like a minute
 	"ignoredNPC": [],
 	"previousDistance": false,
 };
@@ -342,7 +343,7 @@ game.auto.onTickEvent.combat = function(){
 	}
 	let sSkillBase = game.player.classe + "_base";
 	let oSkillBase = game.player.skills[sSkillBase];
-	if(oSkillbase.isReady(game.player)){
+	if(oSkillBase && oSkillBase.isReady(game.player)){
 		game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
 		game.auto.current.tickDelay = Date.now() + 100;
 	}
