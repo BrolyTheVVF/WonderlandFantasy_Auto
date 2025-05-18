@@ -19,6 +19,8 @@ game.auto.HTML = false;
 game.auto.current = {
 	"map": false,
 	"npcList": {},
+	"attackElite": true,
+	"attackChief": true,
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
@@ -30,21 +32,38 @@ game.auto.slots = {
 
 game.auto.buildInterface = function(){
 	/** QUESTS LIST WINDOW UI **/
-	game.auto.HTML = HTML_UI_BuildWindow("AUTO_UI_MAIN", {"x": game.cookie.get("AUTO_UI_MAIN-pos.x", 20), "y": game.cookie.get("AUTO_UI_MAIN-pos.y", 10), "width": 600, "height": 390, "title": LC_TEXT("UI.windows.auto.title")}, function(){game.auto.hide();});
+	game.auto.HTML = HTML_UI_BuildWindow("AUTO_UI_MAIN", {"x": game.cookie.get("AUTO_UI_MAIN-pos.x", 20), "y": game.cookie.get("AUTO_UI_MAIN-pos.y", 10), "width": 600, "height": 390, "title": LC_TEXT(game.lang, "UI.windows.auto.title")}, function(){game.auto.hide();});
 	let contentFrame = $(''
-		+'<div style="margin-top: 6px;display: grid;grid-template-rows: auto 1fr;">'
+		+'<div style="margin-top: 6px;display: grid;grid-template-rows: auto 1fr;height: calc(100% - 6px);">'
 			+'<div>'
 				+ '<div class="ui-tab">'
-					+ '<div class="ui-tab-option active" data-tab-target="#AUTO_UI_TAB1">' + LC_TEXT('UI.windows.auto.tab.auto') + '</div>'
-					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB2">' + LC_TEXT('UI.windows.auto.tab.settings') + '</div>'
-					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB4">' + LC_TEXT('UI.windows.auto.tab.monsters') + '</div>'
+					+ '<div class="ui-tab-option active" data-tab-target="#AUTO_UI_TAB1">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.auto') + '</div>'
+					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB2">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.settings') + '</div>'
+					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB4">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.monsters') + '</div>'
 				+ '</div>'
 				+ '<div class="ui-tab-line"></div>'
 			+'</div>'
 			+ '<div class="auto-pane ui-tab-content-row">'
 				// TAB 1
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB1" style="overflow: hidden;">'
-					
+					+ '<div class="auto-pics">'
+						
+					+ '</div>'
+					+ '<div class="auto-start">'
+						+ '<div class="ui-btn-table-sm" onclick="game.auto.toggleStart();">'
+							+ '<div class="ui-btn-table-sm-left"></div>'
+							+ '<div class="ui-btn-table-sm-middle auto-start-btn">' + LC_TEXT(game.lang, 'UI.windows.auto.btn.start') + '</div>'
+							+ '<div class="ui-btn-table-sm-right"></div>'
+						+ '</div>'
+						+ '<div class="auto-setting-attackElite">'
+							+ '<input onchange="game.auto.current.attackElite = this.checked" type="checkbox" checked />'
+							+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.attackElite') + '</span>'
+						+ '</div>'
+						+ '<div class="auto-setting-attackChief">'
+							+ '<input onchange="game.auto.current.attackChief = this.checked" type="checkbox" checked />'
+							+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.attackChief') + '</span>'
+						+ '</div>'
+					+ '</div>'
 				+ '</div>'
 				// TAB 2
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB2" style="display: none;">'
@@ -61,15 +80,17 @@ game.auto.buildInterface = function(){
 	$(game.auto.HTML).find(".ui-body-content").append(contentFrame);
 	$("#UI_MAIN").append(game.auto.HTML);
 	
+	//Adding the minimap icon on top of the minimap, since the minimap doesn't work anyway LUL
 	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="DPS Meter" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
 	
 	$("#WF_STYLE").append($(''
-		+ '<style id="WF_STYLE_CHARACTER_MAIN">'
+		+ '<style id="WF_STYLE_AUTO_MAIN">'
 		
-		/** CHARACTER UI - CHECK GEAR **/
-		+ '#AUTO_UI_LEFT .character-gear-line, #CHECKGEAR_UI_MAIN .character-gear-line {margin-left: 5px;margin-right: 5px;}'
-		+ '#AUTO_UI_RIGHT .stat-pane{flex-grow: 1;height: auto;overflow-y: auto;padding: 5px;margin-top: 5px;background-color: #' + game.UI.COLORS.uiBGLight2 + ';}'
-		+ '#AUTO_UI_TAB1{padding-top: 10px;}'
+		+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
+		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(0, 0, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
 		
 		+ '</style>'
 	));
@@ -87,48 +108,66 @@ game.auto.refreshUI = function(){
 	}
 	
 	game.auto.refreshUI_Lang();
-	game.auto.refreshUI_Gears();
+	game.auto.refreshUI_Npcs();
+	game.auto.refreshUI_Settings();
+	game.auto.refreshUI_Monsters();
 	
 	
 	$("#AUTO_UI_MAIN").show();
 };
 
 game.auto.refreshUI_Lang = function(){
-	$("#AUTO_UI_MAIN .ui-title").html(LC_TEXT("UI.windows.auto.title"));
-	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB1']").html(LC_TEXT('UI.windows.auto.tab.auto'));
-	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB2']").html(LC_TEXT('UI.windows.auto.tab.settings'));
-	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB3']").html(LC_TEXT('UI.windows.auto.tab.monsters'));
-	// $("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB4']").html(LC_TEXT('UI.windows.auto.tab.element'));
-	// $("#AUTO_UI_MAIN #character-window-stat-HP-label").html(LC_TEXT("UI.stat.HP") + ": ");
-	// $("#AUTO_UI_MAIN #character-window-stat-Guild-label").html(LC_TEXT("general.guild") + ": ");
-	// $("#AUTO_UI_MAIN #character-window-stat-MP-label").html(LC_TEXT("UI.stat.MP") + ": ");
-	// $("#AUTO_UI_MAIN #character-window-stat-SPD-label").html(LC_TEXT("UI.stat.SPD") + ": ");
-	// $("#AUTO_UI_MAIN #character-window-stat-EXP-label").html(LC_TEXT("UI.stat.EXP") + ": ");
-	// $("#AUTO_UI_MAIN #character-window-stat-ATK-label").html(LC_TEXT("UI.stat.ATK.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-DEF-label").html(LC_TEXT("UI.stat.DEF.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-ENHC_DMG-label").html(LC_TEXT("UI.stat.ENHC_DMG.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-DMG_RD-label").html(LC_TEXT("UI.stat.DMG_RD.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-ATK_SPD-label").html(LC_TEXT("UI.stat.ATK_SPD.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_ENHC-label").html(LC_TEXT("UI.stat.SKILL_ENHC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-ACC-label").html(LC_TEXT("UI.stat.ACC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_ACC-label").html(LC_TEXT("UI.stat.SKILL_ACC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-EVA-label").html(LC_TEXT("UI.stat.EVA.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_EVA-label").html(LC_TEXT("UI.stat.SKILL_EVA.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-CRIT_ACC-label").html(LC_TEXT("UI.stat.CRIT_ACC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_CRIT_ACC-label").html(LC_TEXT("UI.stat.SKILL_CRIT_ACC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-CRIT_EVA-label").html(LC_TEXT("UI.stat.CRIT_EVA.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_CRIT_EVA-label").html(LC_TEXT("UI.stat.SKILL_CRIT_EVA.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-CRIT_ENHC-label").html(LC_TEXT("UI.stat.CRIT_ENHC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_CRIT_ENHC-label").html(LC_TEXT("UI.stat.SKILL_CRIT_ENHC.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-CRIT_RD-label").html(LC_TEXT("UI.stat.CRIT_RD.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-SKILL_CRIT_RD-label").html(LC_TEXT("UI.stat.SKILL_CRIT_RD.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-HOLY_ATK-label").html(LC_TEXT("UI.stat.HOLY_ATK.short"));
-	// $("#AUTO_UI_MAIN #character-window-stat-LUCK-label").html(LC_TEXT("UI.stat.LUCK.short"));
+	$("#AUTO_UI_MAIN .ui-title").html(LC_TEXT(game.lang, "UI.windows.auto.title"));
+	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB1']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.auto'));
+	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB2']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.settings'));
+	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB3']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.monsters'));
+	
+	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.' + ((game.auto.current.active === true)?'stop':'start')));
+	
+	$("#AUTO_UI_TAB1 .auto-setting-attackElite .input-label").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.attackElite'));
+	$("#AUTO_UI_TAB1 .auto-setting-attackChief .input-label").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.attackChief'));
 };
 
 game.auto.refreshUI_Npcs = function(){
 	let oChar = game.player;
 	if(oChar === false){ return; }
+	
+	let sHtmlCards = '';
+	
+	for(let MID in game.auto.current.npcList){
+		let oNpc = game.auto.current.npcList[MID];
+		sHtmlCards += '<div class="auto-npc-card" id="auto-npc-card-' + MID + '">'
+				+ '<div class="auto-npc-card-frame">' 
+					+ '<div class="auto-npc-card-frame-fg" style="width: ' + oNpc.skin.frame.width + 'px;height: ' + oNpc.skin.frame.height + 'px;position: relative;overflow: hidden;">' 
+					// + '<div class="auto-npc-card-frame-bg"></div>'
+						+ '<img src="' + oNpc.skin.texture + '" style="top: -' + oNpc.skin.frame.y + 'px;left: -' + oNpc.skin.frame.x + 'px;position: absolute;" />'
+					+ '</div>'
+				+ '</div>'
+				+ '<div class="auto-npc-card-level">' + LC_TEXT(game.lang, 'general.level.short') + ' ' + oNpc.level + '</div>'
+				+ '<div class="auto-npc-card-input">'
+					+ '<input '
+						+ ((oNpc.selected)?' checked':'')
+						+ ' onchange="game.auto.current.npcList[' + MID + '].selected = this.checked" '
+						+ ' type="checkbox" '
+					+ '/>'
+				+ '</div>'
+			+ '</div>'
+		;
+	}
+	
+	$("#AUTO_UI_TAB1 .auto-pics").html(sHtmlCards);
+};
+game.auto.refreshUI_Settings = function(){
+	let oChar = game.player;
+	if(oChar === false){ return; }
+};
+game.auto.refreshUI_Monsters = function(){
+	let oChar = game.player;
+	if(oChar === false){ return; }
+	
+	// Seems it won't happend
+	// Would require some sync with the server to have to full list of seen mobs and their translated names / drops and everything
+	
 };
 
 
@@ -151,6 +190,22 @@ game.auto.hide = function(){
 };
 game.auto.pullWindow = function(){
 	game.zIndexPush("AUTO_UI_MAIN");
+};
+
+game.auto.toggleStart = function(){
+	if(game.auto.current.active === true){
+		game.auto.stop();
+	}else{
+		game.auto.start();
+	}
+};
+game.auto.start = function(){
+	game.auto.current.active = true;
+	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.stop'));
+};
+game.auto.stop = function(){
+	game.auto.current.active = false;
+	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.start'));
 };
 
 
@@ -190,10 +245,11 @@ game.auto.onTickEvent.idle = function(){
 		return;
 	}
 	//Search for next target
-	let oClosest = game.utilities.getClosestEntity();
+	let oClosest = game.auto.Combat_getClosestEntity();
 	if(oClosest){
+		console.log("Auto: new target select [" + oClosest.uid + "]");
 		game.setLockON(oClosest.uid, true, "auto");
-		game.auto.setState("combat");
+		game.auto.setState("reaching");
 	}
 };
 game.auto.onTickEvent.combat = function(){
@@ -209,6 +265,7 @@ game.auto.onTickEvent.combat = function(){
 	let oSkillBase = game.player.skills[sSkillBase];
 	if(oSkillbase.isReady(game.player)){
 		game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
+		game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
 	for(let i = 0; i < game.auto.slots.length; i++){
@@ -224,6 +281,7 @@ game.auto.onTickEvent.combat = function(){
 		
 		if(oSkill.isReady(game.player)){
 			game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
+			game.auto.current.tickDelay = Date.now() + 100;
 			return;
 		}
 	};
@@ -239,6 +297,7 @@ game.auto.onTickEvent.reaching = function(){
 	}
 	if(!game.player.isWalking){
 		game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
+		game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
 };
@@ -267,6 +326,37 @@ game.auto.setState = function(sState){
 	game.auto.current.tickDelay = Date.now() + 500;
 }
 
+game.auto.Combat_getClosestEntity = function(){
+	let nClosest = 999999999;
+	let sUID = false;
+	for(k in game.entities){
+		let oEntity = game.entities[k];
+		if(!oEntity.isPC && game.player.canDamage(oEntity)){
+			let MID = oEntity.mid;
+			if(!game.auto.current.npcList.hasOwnProperty(MID)){
+				continue;
+			}
+			if(!game.auto.current.npcList[MID].selected){
+				continue;
+			}
+			if(oEntity.isElite && !game.auto.current.attackElite){
+				continue;
+			}
+			if(oEntity.isChief && !game.auto.current.attackChief){
+				continue;
+			}
+			
+			let nCurDist = game.utilities.distanceBetween(game.player, oEntity);
+			if(nCurDist < nClosest){
+				nClosest = nCurDist;
+				sUID = k;
+			}
+		}
+	}
+	if(sUID && nClosest){
+		return game.entities[sUID];
+	}
+};
 game.auto.Combat_isInRange = function(){
 	let sSkillBase = game.player.classe + "_base";
 	if(!game.player.skills[sSkillBase].inRange(game.player, game.player.lockOn)){
@@ -364,9 +454,16 @@ game.auto.npcList.proto = class{
 		if(!(o instanceof NPC)){
 			throw new Error("Entity list object must be an instance of the NPC class");
 		}
-		this.skinTexture = false;
+		this.skin = {
+			"texture": false,
+			"frame": {"x": 0, "y": 0, "width": 0, "height": 0},
+		};
 		if(o.skins.base.frames.hasOwnProperty("idle0")){
-			this.skinTexture = o.skins.base.frames.idle0[0].sprite._texture.baseTexture.textureCacheIds[0];
+			this.skin.texture = o.skins.base.frames.idle0[0].sprite._texture.baseTexture.textureCacheIds[0];
+			this.skin.frame.x = o.skins.base.frames.idle0[0].sprite._texture.frame.x;
+			this.skin.frame.y = o.skins.base.frames.idle0[0].sprite._texture.frame.y;
+			this.skin.frame.width = o.skins.base.frames.idle0[0].sprite._texture.frame.width;
+			this.skin.frame.height = o.skins.base.frames.idle0[0].sprite._texture.frame.height;
 		}else{
 			
 		}
@@ -384,6 +481,12 @@ $(document).ready(() => {
 	locale["UI.windows.auto.tab.auto"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
 	locale["UI.windows.auto.tab.settings"] = {"en": "Settings", "fr": "Paramètres"};
 	locale["UI.windows.auto.tab.monsters"] = {"en": "Monsters", "fr": "Monstres"};
+	
+	locale["UI.windows.auto.btn.start"] = {"en": "Start", "fr": "Démarer"};
+	locale["UI.windows.auto.btn.stop"] = {"en": "Stop", "fr": "Arrêter"};
+	
+	locale["UI.windows.auto.setting.attackElite"] = {"en": "Attack elites", "fr": "Attaquer les elites"};
+	locale["UI.windows.auto.setting.attackChief"] = {"en": "Attack chiefs", "fr": "Attaquer les chefs"};
 	
 	game.auto.onTick();
 });
