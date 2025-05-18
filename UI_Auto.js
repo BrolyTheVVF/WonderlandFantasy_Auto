@@ -1,3 +1,18 @@
+// ==UserScript==
+// @name         WF Auto Pilot
+// @namespace    http://tampermonkey.net/
+// @version      2025-05-18
+// @description  try to take over the world!
+// @author       BrolyTheVVF
+// @match        https://*.wonderland-fantasy.com/
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=wonderland-fantasy.com
+// @grant        none
+// ==/UserScript==
+
+(function() {
+
+
+
 game.auto = {};
 game.auto.__isBuild = false;
 game.auto.HTML = false;
@@ -145,3 +160,7 @@ $(document).ready(() => {
 	locale["UI.windows.auto.tab.monsters"] : {"en": "Monsters", "fr": "Monstres"};
 	
 });
+
+
+
+})();
