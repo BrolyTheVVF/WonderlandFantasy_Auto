@@ -307,7 +307,7 @@ game.auto.onTickEvent.combat = function(){
 	}
 	if(!game.auto.Combat_isInRange()){
 		if(game.auto.setting.fixedSite){
-			game.player.lockOn = false;
+			game.player.setLockON(false);
 			game.auto.current.ignoredNPC = [];
 			game.auto.current.previousDistance = false;
 			game.auto.setState("idle");
@@ -353,18 +353,20 @@ game.auto.onTickEvent.reaching = function(){
 		return;
 	}
 	if(!game.player.isWalking){
-		
+		console.log("game.auto.current.previousDistance", game.auto.current.previousDistance);
+		console.log("game.utilities.distanceBetween(game.player, game.player.lockOn)", game.utilities.distanceBetween(game.player, game.player.lockOn));
 		if(game.auto.current.previousDistance !== false && game.auto.current.previousDistance < game.utilities.distanceBetween(game.player, game.player.lockOn)){
 			//If you get there, there is a problem, most likelly player is stuck on a wall
 			//That mean you actually are now further away from the NPC while you also stopped walking (and not just the NPC got further away by walking too)
 			
 			game.auto.current.ignoredNPC.push(game.player.lockOn.uid);
 			game.auto.current.previousDistance = false;
+			game.player.setLockON(false);
 			game.auto.setState("idle");
+			game.auto.current.tickDelay = Date.now() + 200;
 			return;
 		}
 		
-		game.auto.current.previousDistance = game.utilities.distanceBetween(game.player, game.player.lockOn);
 		
 		game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
 		game.auto.current.tickDelay = Date.now() + 100;
@@ -374,6 +376,7 @@ game.auto.onTickEvent.reaching = function(){
 		game.auto.current.tickDelay = Date.now() + 200;
 	}
 	
+	game.auto.current.previousDistance = game.utilities.distanceBetween(game.player, game.player.lockOn);
 };
 game.auto.setState = function(sState){
 	game.auto.current.state = sState;
@@ -407,6 +410,9 @@ game.auto.Combat_getClosestEntity = function(){
 	for(k in game.entities){
 		let oEntity = game.entities[k];
 		if(!oEntity.isPC && game.player.canDamage(oEntity)){
+			if(game.auto.current.ignoredNPC.indexOf(oEntity.uid) >= 0){
+				continue;
+			}
 			let MID = oEntity.mid;
 			if(!game.auto.current.npcList.hasOwnProperty(MID)){
 				continue;
