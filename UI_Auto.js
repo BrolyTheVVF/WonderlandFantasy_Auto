@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.005
+// @version      2025-05-18.006
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -24,6 +24,9 @@ game.auto.current = {
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
+	
+	"ignoredNPC": [],
+	"previousDistance": false,
 };
 game.auto.setting = {
 	"fixedSite": false,
@@ -127,6 +130,9 @@ game.auto.buildInterface = function(){
 		
 		+ '</style>'
 	));
+	
+	// game.mouse.onMouseMove();
+	// game.mouse.onMouseDown();
 	
 	game.auto.__isBuild = true;
 };
@@ -283,7 +289,7 @@ game.auto.onTickEvent.idle = function(){
 	//Search for next target
 	let oClosest = game.auto.Combat_getClosestEntity();
 	if(oClosest){
-		console.log("Auto: new target select [" + oClosest.uid + "]");
+		// console.log("Auto: new target select [" + oClosest.uid + "]");
 		game.setLockON(oClosest.uid, true, "auto");
 		if(game.auto.setting.fixedSite){
 			game.auto.setState("combat");
@@ -294,12 +300,16 @@ game.auto.onTickEvent.idle = function(){
 };
 game.auto.onTickEvent.combat = function(){
 	if(!game.player.lockOn || game.player.lockOn.isDead){
+		game.auto.current.ignoredNPC = [];
+		game.auto.current.previousDistance = false;
 		game.auto.setState("idle");
 		return;
 	}
 	if(!game.auto.Combat_isInRange()){
 		if(game.auto.setting.fixedSite){
 			game.player.lockOn = false;
+			game.auto.current.ignoredNPC = [];
+			game.auto.current.previousDistance = false;
 			game.auto.setState("idle");
 		}else{
 			game.auto.setState("reaching");
@@ -333,6 +343,8 @@ game.auto.onTickEvent.combat = function(){
 };
 game.auto.onTickEvent.reaching = function(){
 	if(!game.player.lockOn || game.player.lockOn.isDead){
+		game.auto.current.ignoredNPC = [];
+		game.auto.current.previousDistance = false;
 		game.auto.setState("idle");
 		return;
 	}
@@ -341,19 +353,37 @@ game.auto.onTickEvent.reaching = function(){
 		return;
 	}
 	if(!game.player.isWalking){
+		
+		if(game.auto.current.previousDistance !== false && game.auto.current.previousDistance < game.utilities.distanceBetween(game.player, game.player.lockOn)){
+			//If you get there, there is a problem, most likelly player is stuck on a wall
+			//That mean you actually are now further away from the NPC while you also stopped walking (and not just the NPC got further away by walking too)
+			
+			game.auto.current.ignoredNPC.push(game.player.lockOn.uid);
+			game.auto.current.previousDistance = false;
+			game.auto.setState("idle");
+			return;
+		}
+		
+		game.auto.current.previousDistance = game.utilities.distanceBetween(game.player, game.player.lockOn);
+		
 		game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
 		game.auto.current.tickDelay = Date.now() + 100;
+	}else if (game.player.target.yx + game.player.x != game.player.lockOn.x || game.player.target.y + game.player.y != game.player.lockOn.y){
+		//Target is also moving, retargeting the character to get to him
+		game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
+		game.auto.current.tickDelay = Date.now() + 200;
 	}
 	
 };
 game.auto.setState = function(sState){
 	game.auto.current.state = sState;
-	console.log("Auto -> new state", sState);
+	// console.log("Auto -> new state", sState);
 	if(sState === "idle"){
 		if(game.player.isWalking){
 			game.setTarget(game.player.x, game.player.y);
 		}
 		game.player.inAutoAttack = false;
+		
 	}else if(sState === "combat" || sState === "reaching"){
 		if(!game.player.lockOn || game.player.lockOn.isDead){
 			game.auto.setState("idle");
@@ -418,17 +448,24 @@ game.auto.Combat_isInRange = function(oEntity){
 	for(let i = 0; i < game.auto.slots.length; i++){
 		let SkillID = game.auto.slots[i];
 		let oSkill = game.player.skills[SkillID];
-		let oProto = oSkill.proto;
-		if(oProto.isPassive){
-			continue;
-		}
-		if(!oProto.targetEnnemy){
+		if(!game.auto.Combat_skillIsValid(oSkill)){
 			continue;
 		}
 		if(!oSkill.inRange(game.player, ((oEntity)?oEntity:game.player.lockOn))){
 			return false;
 		}
 	};
+	
+	return true;
+};
+game.auto.Combat_skillIsValid = function(oSkill){
+	if(!oSkill){
+		return false;
+	}
+	let oProto = oSkill.proto;
+	if(!oProto || oProto.isPassive || !oProto.targetEnnemy){
+		return false;
+	}
 	
 	return true;
 };
