@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.006
+// @version      2025-05-18.007
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -123,7 +123,7 @@ game.auto.buildInterface = function(){
 		
 		+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
 		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;}'
-		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(0, 0, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
 		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
@@ -168,6 +168,8 @@ game.auto.refreshUI_Lang = function(){
 	
 	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-no").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.no'));
 	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-yes").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.yes'));
+	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-no").attr("title", LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.no.description'));
+	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-yes").attr("title", LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.yes.description'));
 };
 
 game.auto.refreshUI_Npcs = function(){
@@ -589,6 +591,9 @@ $(document).ready(() => {
 	locale["UI.windows.auto.setting.attackChief"] = {"en": "Attack chiefs", "fr": "Attaquer les chefs"};
 	locale["UI.windows.auto.setting.fixedSite.no"] = {"en": "Move and attack", "fr": "Attaquer et se déplacer"};
 	locale["UI.windows.auto.setting.fixedSite.yes"] = {"en": "Attack & don't move", "fr": "Attaquer et ne pas se déplacer"};
+	locale["UI.windows.auto.setting.fixedSite.no.description"] = {"en": "The character will patrol the map to kill monsters", "fr": "Le personnage patrouillera sur la carte pour tuer des monstres."};
+	// locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will patrol in a certain area to kill monsters", "fr": "Le personnage patrouillera dans une certaine zone pour tuer des monstres."};
+	locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will stand still and kill monsters that are in range", "fr": "Le personnage reste immobile et tue les monstres qui sont à sa portée."};
 	
 	game.auto.onTick();
 });
