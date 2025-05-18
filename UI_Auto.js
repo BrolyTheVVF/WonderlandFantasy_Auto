@@ -9,8 +9,8 @@
 // @grant        none
 // ==/UserScript==
 
-setTimeout(
 (function() {
+setTimeout(() => {
 
 
 game.auto = {};
@@ -162,7 +162,5 @@ $(document).ready(() => {
 });
 
 
-
-})(),
-5000
-);
+},5000);
+})()
