@@ -302,6 +302,9 @@ game.auto.pickupItems = function(){
 		}
 		l.push(k);
 	}
+	if(l.length === 0){
+		return;
+	}
 	game._emit("pickupMultipleItem", [l]);
 };
 game.auto.pickupSouls = function(){
@@ -316,6 +319,11 @@ game.auto.pickupSouls = function(){
 				oGatherList.push(k);
 			}
 		}
+		
+		if(oGatherList.length === 0){
+			return;
+		}
+		
 		game.SOUL_GATHERING.pickupSoulList(oGatherList);
 	}
 };
