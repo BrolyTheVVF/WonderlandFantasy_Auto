@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-19.001
+// @version      2025-05-19.002
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -34,13 +34,13 @@ game.auto.setting = {
 	"useSoulGathering": false,
 	
 	"ruleHP_1_Pct": false,
-	"ruleHP_1_Ation": false,
+	"ruleHP_1_Action": "",
 	"ruleHP_2_Pct": false,
-	"ruleHP_2_Ation": false,
+	"ruleHP_2_Action": "",
 	"ruleMP_1_Pct": false,
-	"ruleMP_1_Ation": false,
+	"ruleMP_1_Action": "",
 	"ruleMP_2_Pct": false,
-	"ruleMP_2_Ation": false,
+	"ruleMP_2_Action": "",
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -52,6 +52,11 @@ game.auto.regen = {
 };
 
 game.auto.buildInterface = function(){
+	
+	for(let k in game.auto.setting){
+		game.auto.setting[k] = game.cookie.get("AUTO-SETTING-" + k, game.auto.setting[k]);
+	}
+	
 	/** QUESTS LIST WINDOW UI **/
 	game.auto.HTML = HTML_UI_BuildWindow("AUTO_UI_MAIN", {"x": game.cookie.get("AUTO_UI_MAIN-pos.x", 20), "y": game.cookie.get("AUTO_UI_MAIN-pos.y", 10), "width": 600, "height": 390, "title": LC_TEXT(game.lang, "UI.windows.auto.title")}, function(){game.auto.hide();});
 	let contentFrame = ''
@@ -122,12 +127,12 @@ game.auto.buildInterface = function(){
 							+ '<div class="auto-rules-p2 auto-p2h-hp-l1">'
 								+ '<div class="auto-p2h-hp-l11">' + LC_TEXT(game.lang, 'UI.stat.HP') + '</div>'
 								+ '<div class="auto-p2h-hp-l12">'
-									+ '<select class="auto-p2h-hp1-rule" onchange="game.auto.setting.ruleHP_1_Pct = parseInt(this.value) * 10;">' 
+									+ '<select class="auto-p2h-hp1-rule" onchange="game.auto.setSetting(\'ruleHP_1_Pct\', parseInt(this.value));">' 
 										+ sRule
 									+ '</select>'
 								+ '</div>'
 								+ '<div class="auto-p2h-hp-l13">' 
-									+ '<select class="auto-p2h-hp1-input" onchange="game.auto.setting.ruleHP_1_Action = this.value">' 
+									+ '<select class="auto-p2h-hp1-input" onchange="game.auto.setSetting(\'ruleHP_1_Action\', this.value);">' 
 										+ sHpList
 									+ '</select>'
 								+ '</div>'
@@ -135,12 +140,12 @@ game.auto.buildInterface = function(){
 							+ '<div class="auto-rules-p2 auto-p2h-hp-l2">'
 								+ '<div class="auto-p2h-hp-l21"></div>'
 								+ '<div class="auto-p2h-hp-l22">'
-									+ '<select class="auto-p2h-hp2-rule" onchange="game.auto.setting.ruleHP_2_Pct = parseInt(this.value) * 10;">' 
+									+ '<select class="auto-p2h-hp2-rule" onchange="game.auto.setSetting(\'ruleHP_2_Pct\', parseInt(this.value));">' 
 										+ sRule
 									+ '</select>'
 								+ '</div>'
 								+ '<div class="auto-p2h-hp-l23">' 
-									+ '<select class="auto-p2h-hp2-input" onchange="game.auto.setting.ruleHP_2_Action = this.value">' 
+									+ '<select class="auto-p2h-hp2-input" onchange="game.auto.setSetting(\'ruleHP_2_Action\', this.value);">' 
 										+ sHpList
 									+ '</select>'
 								+ '</div>'
@@ -148,9 +153,30 @@ game.auto.buildInterface = function(){
 						+ '</div>'
 						+ '<div class="auto-p2h-mp">'
 							+ '<div class="auto-rules-p2 auto-p2h-mp-l1">'
+								+ '<div class="auto-p2h-mp-l11">' + LC_TEXT(game.lang, 'UI.stat.MP') + '</div>'
+								+ '<div class="auto-p2h-mp-l12">'
+									+ '<select class="auto-p2h-mp1-rule" onchange="game.auto.setSetting(\'ruleMP_1_Pct\', parseInt(this.value));">' 
+										+ sRule
+									+ '</select>'
+								+ '</div>'
+								+ '<div class="auto-p2h-mp-l13">' 
+									+ '<select class="auto-p2h-mp1-input" onchange="game.auto.setSetting(\'ruleMP_1_Action\', this.value);">' 
+										+ sMpList
+									+ '</select>'
+								+ '</div>'
 							+ '</div>'
 							+ '<div class="auto-rules-p2 auto-p2h-mp-l2">'
-								
+								+ '<div class="auto-p2h-mp-l21"></div>'
+								+ '<div class="auto-p2h-mp-l22">'
+									+ '<select class="auto-p2h-mp2-rule" onchange="game.auto.setSetting(\'ruleMP_2_Pct\', parseInt(this.value));">' 
+										+ sRule
+									+ '</select>'
+								+ '</div>'
+								+ '<div class="auto-p2h-mp-l23">' 
+									+ '<select class="auto-p2h-mp2-input" onchange="game.auto.setSetting(\'ruleMP_2_Action\', this.value);">' 
+										+ sMpList
+									+ '</select>'
+								+ '</div>'
 							+ '</div>'
 						+ '</div>'
 					+ '</div>'
@@ -158,12 +184,12 @@ game.auto.buildInterface = function(){
 						+ '<div class="auto-p2b-left">'
 						+ '</div>'
 						+ '<div class="auto-p2b-right">'
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "1").outerHTML
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "2").outerHTML
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "3").outerHTML
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "4").outerHTML
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "5").outerHTML
-							+ HTML_UI_BuildEmptySlot("", "auto-skill", "6").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "1").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "2").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "3").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "4").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "5").outerHTML
+							// + HTML_UI_BuildEmptySlot("", "auto-skill", "6").outerHTML
 						+ '</div>'
 					+ '</div>'
 					+ '<div class="auto-p2-foot">'
@@ -193,6 +219,8 @@ game.auto.buildInterface = function(){
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
 		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
 		
+		+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: 1fr 1fr auto; height: 100%;align-items: center;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
 		+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
 		
@@ -204,7 +232,7 @@ game.auto.buildInterface = function(){
 	
 	document.addEventListener("keydown", function(event){
 		if(!event.key){
-			console.warn('document.addEventListener("keydown") => event has no "key" index', event);
+			// console.warn('document.addEventListener("keydown") => event has no "key" index', event);
 			return;
 		}
 		let sKey = event.key.toLowerCase();
@@ -228,6 +256,11 @@ game.auto.buildInterface = function(){
 	
 	game.auto.__isBuild = true;
 };
+
+game.auto.setSetting = function(k, v){
+	game.auto.setting[k] = v;
+	game.cookie.set("AUTO-SETTING-" + k, v);
+}
 
 game.auto.refreshUI = function(){
 	if(!game.auto.__isBuild){
@@ -271,11 +304,13 @@ game.auto.refreshUI_Lang = function(){
 	
 	for(let i = 0; i < game.auto.regen.hp.length; i++){
 		let k = game.auto.regen.hp[i];
-		$("#AUTO_UI_TAB2 option.hp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name'));
+		let nQte = game.player.getItemQty(k, false);
+		$("#AUTO_UI_TAB2 option.hp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name') + ((nQte > 0)?' (x' + nQte + ')':''));
 	}
 	for(let i = 0; i < game.auto.regen.mp.length; i++){
 		let k = game.auto.regen.mp[i];
-		$("#AUTO_UI_TAB2 option.mp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name'));
+		let nQte = game.player.getItemQty(k, false);
+		$("#AUTO_UI_TAB2 option.mp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name') + ((nQte > 0)?' (x' + nQte + ')':''));
 	}
 	
 	
@@ -318,6 +353,17 @@ game.auto.refreshUI_Npcs = function(){
 game.auto.refreshUI_Settings = function(){
 	let oChar = game.player;
 	if(oChar === false){ return; }
+	
+	$(".auto-p2h-hp1-rule").val(game.auto.setting.ruleHP_1_Pct);
+	$(".auto-p2h-hp1-input").val(game.auto.setting.ruleHP_1_Action);
+	$(".auto-p2h-hp2-rule").val(game.auto.setting.ruleHP_2_Pct);
+	$(".auto-p2h-hp2-input").val(game.auto.setting.ruleHP_2_Action);
+	
+	$(".auto-p2h-mp1-rule").val(game.auto.setting.ruleMP_1_Pct);
+	$(".auto-p2h-mp1-input").val(game.auto.setting.ruleMP_1_Action);
+	$(".auto-p2h-mp2-rule").val(game.auto.setting.ruleMP_2_Pct);
+	$(".auto-p2h-mp2-input").val(game.auto.setting.ruleMP_2_Action);
+	
 };
 game.auto.refreshUI_Monsters = function(){
 	let oChar = game.player;
@@ -407,7 +453,7 @@ game.auto.checkRules = function(){
 	let nHP = game.player.health.value / game.player.health.max * 100;
 	let nMP = game.player.mana.value / game.player.mana.max * 100;
 	
-	if(game.auto.setting.ruleHP_1_Pct && game.auto.setting.ruleHP_1_Pct >= nHP && game.auto.setting.ruleHP_1_Action){
+	if(game.auto.setting.ruleHP_1_Pct && game.auto.setting.ruleHP_1_Pct * 10 >= nHP && game.auto.setting.ruleHP_1_Action){
 		if(game.auto.setting.ruleHP_1_Action === "SIT"){
 			if(game.auto.current.state === "idle"){
 				game.auto.setState("regen");
@@ -418,7 +464,7 @@ game.auto.checkRules = function(){
 			game.auto.current.tickDelay = Date.now() + 5000;
 		}
 	}
-	if(game.auto.setting.ruleHP_2_Pct && game.auto.setting.ruleHP_2_Pct >= nHP && game.auto.setting.ruleHP_2_Action){
+	if(game.auto.setting.ruleHP_2_Pct && game.auto.setting.ruleHP_2_Pct * 10 >= nHP && game.auto.setting.ruleHP_2_Action){
 		if(game.auto.setting.ruleHP_2_Action === "SIT"){
 			if(game.auto.current.state === "idle"){
 				game.auto.setState("regen");
@@ -430,7 +476,7 @@ game.auto.checkRules = function(){
 		}
 	}
 	
-	if(game.auto.setting.ruleMP_1_Pct && game.auto.setting.ruleMP_1_Pct >= nMP && game.auto.setting.ruleMP_1_Action){
+	if(game.auto.setting.ruleMP_1_Pct && game.auto.setting.ruleMP_1_Pct * 10 >= nMP && game.auto.setting.ruleMP_1_Action){
 		if(game.auto.setting.ruleMP_1_Action === "SIT"){
 			if(game.auto.current.state === "idle"){
 				game.auto.setState("regen");
@@ -441,7 +487,7 @@ game.auto.checkRules = function(){
 			game.auto.current.tickDelay = Date.now() + 5000;
 		}
 	}
-	if(game.auto.setting.ruleMP_2_Pct && game.auto.setting.ruleMP_2_Pct >= nMP && game.auto.setting.ruleMP_2_Action){
+	if(game.auto.setting.ruleMP_2_Pct && game.auto.setting.ruleMP_2_Pct * 10 >= nMP && game.auto.setting.ruleMP_2_Action){
 		if(game.auto.setting.ruleMP_2_Action === "SIT"){
 			if(game.auto.current.state === "idle"){
 				game.auto.setState("regen");
@@ -479,7 +525,7 @@ game.auto.onTickEvent.idle = function(){
 	//Search for next target
 	let oClosest = game.auto.Combat_getClosestEntity();
 	if(oClosest){
-		console.log("Auto: new target select [" + oClosest.uid + "]");
+		console.log("Auto -> new target select [" + oClosest.uid + "]");
 		game.setLockON(oClosest.uid, true, "auto");
 		if(game.auto.setting.fixedSite){
 			game.auto.setState("combat");
@@ -506,6 +552,11 @@ game.auto.onTickEvent.combat = function(){
 		}
 		return;
 	}
+	
+	if(game.player.isCasting){
+		return;
+	}
+	
 	let sSkillBase = game.player.classe + "_base";
 	let oSkillBase = game.player.skills[sSkillBase];
 	if(oSkillBase && oSkillBase.isReady(game.player)){
@@ -513,19 +564,22 @@ game.auto.onTickEvent.combat = function(){
 		game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
-	for(let i = 0; i < game.auto.slots.length; i++){
-		let SkillID = game.auto.slots[i];
+	for(let SkillID in game.player.skills){
+	// for(let i = 0; i < game.auto.slots.length; i++){
+		// let SkillID = game.auto.slots[i];
 		let oSkill = game.player.skills[SkillID];
-		let oProto = oSkill.proto;
-		if(oProto.isPassive){
+		if(SkillID === sSkillBase){
 			continue;
 		}
-		if(!oProto.targetEnnemy){
+		if(!game.auto.Combat_skillIsValid(oSkill)){
 			continue;
 		}
 		
+		if(oSkill.haveRessources(game.player) !== 0){
+			continue;
+		}
 		if(oSkill.isReady(game.player)){
-			game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
+			game.player.askCastSkillOn(SkillID, game.player.lockOn);
 			game.auto.current.tickDelay = Date.now() + 100;
 			return;
 		}
@@ -543,8 +597,6 @@ game.auto.onTickEvent.reaching = function(){
 		return;
 	}
 	if(!game.player.isWalking){
-		console.log("game.auto.current.previousDistance", game.auto.current.previousDistance);
-		console.log("game.utilities.distanceBetween(game.player, game.player.lockOn)", game.utilities.distanceBetween(game.player, game.player.lockOn));
 		if(game.auto.current.previousDistance !== false && game.auto.current.previousDistance < game.utilities.distanceBetween(game.player, game.player.lockOn)){
 			//If you get there, there is a problem, most likelly player is stuck on a wall
 			//That mean you actually are now further away from the NPC while you also stopped walking (and not just the NPC got further away by walking too)
