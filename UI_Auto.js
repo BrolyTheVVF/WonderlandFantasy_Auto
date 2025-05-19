@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-18.009
+// @version      2025-05-19.001
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -32,16 +32,29 @@ game.auto.current = {
 game.auto.setting = {
 	"fixedSite": false,
 	"useSoulGathering": false,
+	
+	"ruleHP_1_Pct": false,
+	"ruleHP_1_Ation": false,
+	"ruleHP_2_Pct": false,
+	"ruleHP_2_Ation": false,
+	"ruleMP_1_Pct": false,
+	"ruleMP_1_Ation": false,
+	"ruleMP_2_Pct": false,
+	"ruleMP_2_Ation": false,
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
 	"items": [false, false, false, false, false, false],
 };
+game.auto.regen = {
+	"hp": [7000,7001,7002,7003,7004,7005,7006,7007,7008],
+	"mp": [7100,7101,7102,7103],
+};
 
 game.auto.buildInterface = function(){
 	/** QUESTS LIST WINDOW UI **/
 	game.auto.HTML = HTML_UI_BuildWindow("AUTO_UI_MAIN", {"x": game.cookie.get("AUTO_UI_MAIN-pos.x", 20), "y": game.cookie.get("AUTO_UI_MAIN-pos.y", 10), "width": 600, "height": 390, "title": LC_TEXT(game.lang, "UI.windows.auto.title")}, function(){game.auto.hide();});
-	let contentFrame = $(''
+	let contentFrame = ''
 		+'<div style="margin-top: 6px;display: grid;grid-template-rows: auto 1fr;height: calc(100% - 6px);">'
 			+'<div>'
 				+ '<div class="ui-tab">'
@@ -81,13 +94,64 @@ game.auto.buildInterface = function(){
 						+ '</div>'
 					+ '</div>'
 				+ '</div>'
+	;
+	
+	let sHpList = '<option value="" class="hp-nothing"></option>';
+	sHpList += '<option value="SIT" class="hp-sit"></option>';
+	for(let i = 0; i < game.auto.regen.hp.length; i++){
+		let k = game.auto.regen.hp[i];
+		sHpList += '<option value="' + k + '" class="hp-' + k + '"></option>'
+	}
+	let sMpList = '<option value="" class="mp-nothing"></option>';
+	sMpList += '<option value="SIT" class="mp-sit"></option>';
+	for(let i = 0; i < game.auto.regen.mp.length; i++){
+		let k = game.auto.regen.mp[i];
+		sMpList += '<option value="' + k + '" class="mp-' + k + '"></option>'
+	}
+	
+	let sRule = '';
+	for(let i = 0; i < 10; i++){
+		sRule += '<option value="' + i + '" class="rule-' + i + '"></option>'
+	}
+	
+	contentFrame += ''
 				// TAB 2
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB2" style="display: none;">'
 					+ '<div class="auto-p2-head">'
 						+ '<div class="auto-p2h-hp">'
+							+ '<div class="auto-rules-p2 auto-p2h-hp-l1">'
+								+ '<div class="auto-p2h-hp-l11">' + LC_TEXT(game.lang, 'UI.stat.HP') + '</div>'
+								+ '<div class="auto-p2h-hp-l12">'
+									+ '<select class="auto-p2h-hp1-rule" onchange="game.auto.setting.ruleHP_1_Pct = parseInt(this.value) * 10;">' 
+										+ sRule
+									+ '</select>'
+								+ '</div>'
+								+ '<div class="auto-p2h-hp-l13">' 
+									+ '<select class="auto-p2h-hp1-input" onchange="game.auto.setting.ruleHP_1_Action = this.value">' 
+										+ sHpList
+									+ '</select>'
+								+ '</div>'
+							+ '</div>'
+							+ '<div class="auto-rules-p2 auto-p2h-hp-l2">'
+								+ '<div class="auto-p2h-hp-l21"></div>'
+								+ '<div class="auto-p2h-hp-l22">'
+									+ '<select class="auto-p2h-hp2-rule" onchange="game.auto.setting.ruleHP_2_Pct = parseInt(this.value) * 10;">' 
+										+ sRule
+									+ '</select>'
+								+ '</div>'
+								+ '<div class="auto-p2h-hp-l23">' 
+									+ '<select class="auto-p2h-hp2-input" onchange="game.auto.setting.ruleHP_2_Action = this.value">' 
+										+ sHpList
+									+ '</select>'
+								+ '</div>'
+							+ '</div>'
 						+ '</div>'
 						+ '<div class="auto-p2h-mp">'
-							
+							+ '<div class="auto-rules-p2 auto-p2h-mp-l1">'
+							+ '</div>'
+							+ '<div class="auto-rules-p2 auto-p2h-mp-l2">'
+								
+							+ '</div>'
 						+ '</div>'
 					+ '</div>'
 					+ '<div class="auto-p2-body">'
@@ -111,13 +175,13 @@ game.auto.buildInterface = function(){
 			+'</div>'
 		+'</div>'
 	+'</div>'
-	);
+	;
 	
-	$(game.auto.HTML).find(".ui-body-content").append(contentFrame);
+	$(game.auto.HTML).find(".ui-body-content").append($(contentFrame));
 	$("#UI_MAIN").append(game.auto.HTML);
 	
 	//Adding the minimap icon on top of the minimap, since the minimap doesn't work anyway LUL
-	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="DPS Meter" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
+	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="Auto" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
 	
 	$("#WF_STYLE").append($(''
 		+ '<style id="WF_STYLE_AUTO_MAIN">'
@@ -128,6 +192,9 @@ game.auto.buildInterface = function(){
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
 		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
+		
+		+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
 		
 		+ '</style>'
 	));
@@ -154,6 +221,8 @@ game.auto.buildInterface = function(){
 		
 		if(sKey === "n"){
 			game.auto.toggleStart();
+		}else if(sKey === "a"){
+			game.auto.toggleVisible();
 		}
 	});
 	
@@ -193,6 +262,28 @@ game.auto.refreshUI_Lang = function(){
 	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-yes").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.yes'));
 	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-no").attr("title", LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.no.description'));
 	$("#AUTO_UI_TAB1 .auto-setting-fixedSite .auto-fs-label-yes").attr("title", LC_TEXT(game.lang, 'UI.windows.auto.setting.fixedSite.yes.description'));
+	
+	$("#AUTO_UI_TAB2 .auto-p2h-hp-l11").html(LC_TEXT(game.lang, 'UI.stat.HP'));
+	$("#AUTO_UI_TAB2 .auto-p2h-mp-l11").html(LC_TEXT(game.lang, 'UI.stat.MP'));
+	
+	$("#AUTO_UI_TAB2 option.hp-nothing, #AUTO_UI_TAB2 option.mp-nothing").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.nothing'));
+	$("#AUTO_UI_TAB2 option.hp-sit, #AUTO_UI_TAB2 option.mp-sit").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.sit'));
+	
+	for(let i = 0; i < game.auto.regen.hp.length; i++){
+		let k = game.auto.regen.hp[i];
+		$("#AUTO_UI_TAB2 option.hp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name'));
+	}
+	for(let i = 0; i < game.auto.regen.mp.length; i++){
+		let k = game.auto.regen.mp[i];
+		$("#AUTO_UI_TAB2 option.mp-" + k).html(LC_TEXT(game.lang, 'item.' + k + '.name'));
+	}
+	
+	
+	$("#AUTO_UI_TAB2 option.rule-0").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.nothing'));
+	for(let i = 1; i < 10; i++){
+		$("#AUTO_UI_TAB2 option.rule-" + i).html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.under', [i * 10]));
+	}
+	// UI.windows.auto.setting.rule.under
 };
 
 game.auto.refreshUI_Npcs = function(){
@@ -283,6 +374,11 @@ game.auto.onTick = function(){
 		return;
 	}
 	
+	if(game.player.isDead){
+		requestAnimationFrame(game.auto.onTick);
+		return;
+	}
+	
 	if(Date.now() < game.auto.current.tickDelay){
 		requestAnimationFrame(game.auto.onTick);
 		return;
@@ -294,7 +390,9 @@ game.auto.onTick = function(){
 		
 	}
 	game.auto.npcList.check();
+	
 	if(game.auto.current.active === true){
+		game.auto.checkRules();
 		game.auto.pickupItems();
 		game.auto.pickupSouls();
 		game.auto.onTickEvent[game.auto.current.state]();
@@ -305,16 +403,83 @@ game.auto.onTick = function(){
 	requestAnimationFrame(game.auto.onTick);
 };
 
+game.auto.checkRules = function(){
+	let nHP = game.player.health.value / game.player.health.max * 100;
+	let nMP = game.player.mana.value / game.player.mana.max * 100;
+	
+	if(game.auto.setting.ruleHP_1_Pct && game.auto.setting.ruleHP_1_Pct >= nHP && game.auto.setting.ruleHP_1_Action){
+		if(game.auto.setting.ruleHP_1_Action === "SIT"){
+			if(game.auto.current.state === "idle"){
+				game.auto.setState("regen");
+				return false;
+			}
+		}else{
+			game.useItemByIID(game.auto.setting.ruleHP_1_Action);
+			game.auto.current.tickDelay = Date.now() + 5000;
+		}
+	}
+	if(game.auto.setting.ruleHP_2_Pct && game.auto.setting.ruleHP_2_Pct >= nHP && game.auto.setting.ruleHP_2_Action){
+		if(game.auto.setting.ruleHP_2_Action === "SIT"){
+			if(game.auto.current.state === "idle"){
+				game.auto.setState("regen");
+				return false;
+			}
+		}else{
+			game.useItemByIID(game.auto.setting.ruleHP_2_Action);
+			game.auto.current.tickDelay = Date.now() + 5000;
+		}
+	}
+	
+	if(game.auto.setting.ruleMP_1_Pct && game.auto.setting.ruleMP_1_Pct >= nMP && game.auto.setting.ruleMP_1_Action){
+		if(game.auto.setting.ruleMP_1_Action === "SIT"){
+			if(game.auto.current.state === "idle"){
+				game.auto.setState("regen");
+				return false;
+			}
+		}else{
+			game.useItemByIID(game.auto.setting.ruleMP_1_Action);
+			game.auto.current.tickDelay = Date.now() + 5000;
+		}
+	}
+	if(game.auto.setting.ruleMP_2_Pct && game.auto.setting.ruleMP_2_Pct >= nMP && game.auto.setting.ruleMP_2_Action){
+		if(game.auto.setting.ruleMP_2_Action === "SIT"){
+			if(game.auto.current.state === "idle"){
+				game.auto.setState("regen");
+				return false;
+			}
+		}else{
+			game.useItemByIID(game.auto.setting.ruleMP_2_Action);
+			game.auto.current.tickDelay = Date.now() + 5000;
+		}
+	}
+};
+
 game.auto.onTickEvent = {};
+game.auto.onTickEvent.regen = function(){
+	if(game.player.health.value === game.player.health.max && game.player.mana.value === game.player.mana.max){
+		game.auto.setState("idle");
+		return;
+	}
+	if(!game.player.isSitting){
+		game._emit("entity_startSitting",[]);
+		game.auto.current.tickDelay = Date.now() + 500;
+	}
+};
+
 game.auto.onTickEvent.idle = function(){
 	if(game.player.lockOn){
 		game.auto.setState("combat");
 		return;
 	}
+	
+	if(game.auto.checkRules() === false){
+		return;
+	}
+	
 	//Search for next target
 	let oClosest = game.auto.Combat_getClosestEntity();
 	if(oClosest){
-		// console.log("Auto: new target select [" + oClosest.uid + "]");
+		console.log("Auto: new target select [" + oClosest.uid + "]");
 		game.setLockON(oClosest.uid, true, "auto");
 		if(game.auto.setting.fixedSite){
 			game.auto.setState("combat");
@@ -405,7 +570,7 @@ game.auto.onTickEvent.reaching = function(){
 };
 game.auto.setState = function(sState){
 	game.auto.current.state = sState;
-	// console.log("Auto -> new state", sState);
+	console.log("Auto -> new state", sState);
 	if(sState === "idle"){
 		if(game.player.isWalking){
 			game.setTarget(game.player.x, game.player.y);
@@ -567,6 +732,8 @@ game.auto.npcList.check = function(){
 		if(!game.auto.current.npcList.hasOwnProperty(MID)){
 			game.auto.current.npcList[MID] = new game.auto.npcList.proto(o);
 			bUpdate = true;
+		}else if(!game.auto.current.npcList[MID].skin.texture){
+			game.auto.current.npcList[MID].setSkin(o);
 		}
 	}
 	if(bUpdate){
@@ -584,6 +751,16 @@ game.auto.npcList.proto = class{
 			"texture": false,
 			"frame": {"x": 0, "y": 0, "width": 0, "height": 0},
 		};
+		this.setSkin(o);
+		this.mid = o.mid;
+		this.selected = true;
+		this.level = o.level;
+	}
+	
+	setSkin(o){
+		if(!(o instanceof NPC)){
+			throw new Error("Entity list object must be an instance of the NPC class");
+		}
 		if(o.skins.base.frames.hasOwnProperty("idle0")){
 			this.skin.texture = o.skins.base.frames.idle0[0].sprite._texture.baseTexture.textureCacheIds[0];
 			this.skin.frame.x = o.skins.base.frames.idle0[0].sprite._texture.frame.x;
@@ -593,9 +770,6 @@ game.auto.npcList.proto = class{
 		}else{
 			
 		}
-		this.mid = o.mid;
-		this.selected = true;
-		this.level = o.level;
 	}
 }
 
@@ -618,6 +792,11 @@ $(document).ready(() => {
 	locale["UI.windows.auto.setting.fixedSite.no.description"] = {"en": "The character will patrol the map to kill monsters", "fr": "Le personnage patrouillera sur la carte pour tuer des monstres."};
 	// locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will patrol in a certain area to kill monsters", "fr": "Le personnage patrouillera dans une certaine zone pour tuer des monstres."};
 	locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will stand still and kill monsters that are in range", "fr": "Le personnage reste immobile et tue les monstres qui sont à sa portée."};
+	
+	locale["UI.windows.auto.setting.rule.under"] = {"en": "Lower than {0}%", "fr": "En dessous de {0}%"};
+	
+	locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
+	locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
 	
 	game.auto.onTick();
 });
