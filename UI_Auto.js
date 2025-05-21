@@ -198,6 +198,7 @@ game.auto.buildInterface = function(){
 				// TAB 3
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB3" style="display: none;">'
 					
+				+'</div>'
 			+'</div>'
 		+'</div>'
 	+'</div>'
