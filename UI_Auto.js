@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-19.002
+// @version      2025-05-21.001
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -429,6 +429,9 @@ game.auto.onTick = function(){
 		requestAnimationFrame(game.auto.onTick);
 		return;
 	}
+	//Currently to prevent a maximum the spam bug, force a delay in between ticks
+	game.auto.current.tickDelay = Date.now() + 50;
+	
 	
 	if(game.auto.current.map !== game.player.map){
 		game.auto.current.map = game.player.map;
@@ -579,7 +582,14 @@ game.auto.onTickEvent.combat = function(){
 			continue;
 		}
 		if(oSkill.isReady(game.player)){
-			game.player.askCastSkillOn(SkillID, game.player.lockOn);
+			if(oSkill.proto.useOnEntity){
+				game.player.askCastSkillOn(SkillID, game.player.lockOn);
+			}else if(oSkill.proto.useOnGround){
+				game.player.askCastSkillTo(SkillID, {"x": game.player.lockOn.x, "y": game.player.lockOn.y});
+			}else{
+				// game.player.askCastSkill(SkillID);
+				continue;
+			}
 			game.auto.current.tickDelay = Date.now() + 100;
 			return;
 		}
@@ -712,7 +722,7 @@ game.auto.Combat_skillIsValid = function(oSkill){
 		return false;
 	}
 	let oProto = oSkill.proto;
-	if(!oProto || oProto.isPassive || !oProto.targetEnnemy){
+	if(!oProto || oProto.isPassive || !oProto.targetEnnemy || oProto.casttime > 0){
 		return false;
 	}
 	
