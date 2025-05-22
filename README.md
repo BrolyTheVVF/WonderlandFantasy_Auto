@@ -15,6 +15,8 @@ Go to [https://www.tampermonkey.net/](https://www.tampermonkey.net/) and install
 
 > ❗ Avoid the *legacy* or *beta* versions unless you know what you're doing.
 
+You must enable develloper mode in you browser in the addon menu
+
 ---
 
 ### 2. 📥 Add the Script
