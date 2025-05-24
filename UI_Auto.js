@@ -383,7 +383,7 @@ game.auto.refreshUI_Settings = function(){
 			continue;
 		}
 		let oSkill = game.player.skills[k];
-		if(oSkill.isPassive){
+		if(!oSkill.proto || oSkill.proto.isPassive){
 			continue;
 		}
 		let bValid = game.cookie.get("AUTO-SKILL-" + k, game.auto.Combat_skillIsValid(oSkill));
