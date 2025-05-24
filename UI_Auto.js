@@ -345,7 +345,10 @@ game.auto.refreshUI_Npcs = function(){
 				+ '<div class="auto-npc-card-frame">' 
 					+ '<div class="auto-npc-card-frame-fg" style="width: ' + oNpc.skin.frame.width + 'px;height: ' + oNpc.skin.frame.height + 'px;position: relative;overflow: hidden;">' 
 					// + '<div class="auto-npc-card-frame-bg"></div>'
-						+ '<img src="' + oNpc.skin.texture + '" style="top: -' + oNpc.skin.frame.y + 'px;left: -' + oNpc.skin.frame.x + 'px;position: absolute;" />'
+						+ ((oNpc.skin.texture)
+							?'<img src="' + oNpc.skin.texture + '" style="top: -' + oNpc.skin.frame.y + 'px;left: -' + oNpc.skin.frame.x + 'px;position: absolute;" />'
+							:'<img src="' + game.assets.baseURL + 'icon/0.png" style="top: 50%;left: 50%;position: absolute;transform: translate(-50%, -50%);" />'
+						)
 					+ '</div>'
 				+ '</div>'
 				+ '<div class="auto-npc-card-level">' + LC_TEXT(game.lang, 'general.level.short') + ' ' + oNpc.level + '</div>'
