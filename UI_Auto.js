@@ -10,8 +10,13 @@
 // ==/UserScript==
 
 (function() {
-setTimeout(() => {
-
+function ___autoInit(){
+if(!game || !game.player){
+	setTimeout(() => {
+		___autoInit();
+	},1000);
+	return;
+}
 
 game.auto = {};
 game.auto.__isBuild = false;
@@ -220,10 +225,13 @@ game.auto.buildInterface = function(){
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
 		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
 		
-		+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: 1fr 1fr auto; height: 100%;align-items: center;text-align: center;}'
+		+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: auto auto 1fr; grid-gap: 5px;; height: 100%;align-items: center;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
 		+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
+		
+		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
 		
 		+ '</style>'
 	));
@@ -303,6 +311,7 @@ game.auto.refreshUI_Lang = function(){
 	$("#AUTO_UI_TAB2 option.hp-nothing, #AUTO_UI_TAB2 option.mp-nothing").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.nothing'));
 	$("#AUTO_UI_TAB2 option.hp-sit, #AUTO_UI_TAB2 option.mp-sit").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.sit'));
 	
+	
 	for(let i = 0; i < game.auto.regen.hp.length; i++){
 		let k = game.auto.regen.hp[i];
 		let nQte = game.player.getItemQty(k, false);
@@ -319,7 +328,8 @@ game.auto.refreshUI_Lang = function(){
 	for(let i = 1; i < 10; i++){
 		$("#AUTO_UI_TAB2 option.rule-" + i).html(LC_TEXT(game.lang, 'UI.windows.auto.setting.rule.under', [i * 10]));
 	}
-	// UI.windows.auto.setting.rule.under
+	
+	$("#AUTO_UI_TAB2 .auto-p2b-left").html(LC_TEXT(game.lang, 'UI.windows.skills.title'));
 };
 
 game.auto.refreshUI_Npcs = function(){
@@ -364,6 +374,41 @@ game.auto.refreshUI_Settings = function(){
 	$(".auto-p2h-mp1-input").val(game.auto.setting.ruleMP_1_Action);
 	$(".auto-p2h-mp2-rule").val(game.auto.setting.ruleMP_2_Pct);
 	$(".auto-p2h-mp2-input").val(game.auto.setting.ruleMP_2_Action);
+	
+	let sSkillBase = game.player.classe + "_base";
+	let sSkillHtml = '';
+	for(let k in game.player.skills){
+		if(k === sSkillBase){
+			continue;
+		}
+		let oSkill = game.player.skills[k];
+		if(oSkill.isPassive){
+			continue;
+		}
+		let bValid = game.cookie.get("AUTO-SKILL-" + k, game.auto.Combat_skillIsValid(oSkill));
+		
+		// sSkillHtml += ''
+			// + '<div class="auto-p2h-skill-card">'
+				// + '<div class="auto-p2h-sc-head">'
+					// + HTML_UI_BuildSlot("", "auto-skill", k, oSkill).outerHTML;
+				// + '</div>'
+				// + '<div class="auto-p2h-sc-foot">'
+					// + '<input type="checkbox" ' + ((bValid)?' checked':'') + ' onchange="game.auto.Combat_skillSetState(\'' + k + '\', this.checked)" />'
+				// + '</div>'
+			// + '</div>'
+		// ;
+		// ??????????
+		sSkillHtml += '<div class="auto-p2h-skill-card">';
+		sSkillHtml += '<div class="auto-p2h-sc-head">';
+		sSkillHtml += HTML_UI_BuildSlot("", "auto-skill", k, oSkill).outerHTML;
+		sSkillHtml += '</div>';
+		sSkillHtml += '<div class="auto-p2h-sc-foot">';
+		sSkillHtml += '<input type="checkbox" ' + ((bValid)?' checked':'') + ' onchange="game.auto.Combat_skillSetState(\'' + k + '\', this.checked)" />';
+		sSkillHtml += '</div>';
+		sSkillHtml += '</div>';
+	}
+	
+	$("#AUTO_UI_TAB2 .auto-p2b-right").html(sSkillHtml);
 	
 };
 game.auto.refreshUI_Monsters = function(){
@@ -575,7 +620,8 @@ game.auto.onTickEvent.combat = function(){
 		if(SkillID === sSkillBase){
 			continue;
 		}
-		if(!game.auto.Combat_skillIsValid(oSkill)){
+		// if(!game.auto.Combat_skillIsValid(oSkill)){
+		if(!game.cookie.get("AUTO-SKILL-" + SkillID, game.auto.Combat_skillIsValid(oSkill))){
 			continue;
 		}
 		
@@ -588,7 +634,7 @@ game.auto.onTickEvent.combat = function(){
 			}else if(oSkill.proto.useOnGround){
 				game.player.askCastSkillTo(SkillID, {"x": game.player.lockOn.x, "y": game.player.lockOn.y});
 			}else{
-				// game.player.askCastSkill(SkillID);
+				game.player.askCastSkill(SkillID);
 				continue;
 			}
 			game.auto.current.tickDelay = Date.now() + 100;
@@ -729,6 +775,9 @@ game.auto.Combat_skillIsValid = function(oSkill){
 	
 	return true;
 };
+game.auto.Combat_skillSetState = function(SkillID, bEnabled){
+	game.cookie.set("AUTO-SKILL-" + SkillID, bEnabled);
+};
 game.auto.pickupItems = function(){
 	let l = [];
 	for(let k in game.groundItems){
@@ -862,8 +911,12 @@ $(document).ready(() => {
 	locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
 	
 	game.auto.onTick();
+	game.UI.refreshUI()
 });
+}
 
-
-},10000);
+//Instead of having a long delay, try every second to inject the code
+setTimeout(() => {
+	___autoInit();
+},1000);
 })()

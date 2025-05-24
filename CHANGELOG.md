@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-05-24.001]
+
+### 💾 Improvements
+- Replaced the ignored skill rules by a skill choice list in the setting tab
+- Change the script injection to try to inject itself every second until the character is logged in to prevent errors when it was loaded too soon
+
+
 ## [2025-05-21.001]
 
 ### 💾 Improvements
