@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-05-24.002]
+
+### 💾 Improvements
+- Added tooltip when hovering the skill slots
+
+
 ## [2025-05-24.001]
 
 ### 💾 Improvements

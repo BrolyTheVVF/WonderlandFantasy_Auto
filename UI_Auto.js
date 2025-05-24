@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-24.001
+// @version      2025-05-24.002
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -285,6 +285,7 @@ game.auto.refreshUI = function(){
 	game.auto.refreshUI_Settings();
 	game.auto.refreshUI_Monsters();
 	
+	game.auto.Mouse_onMouseMove();
 	
 	$("#AUTO_UI_MAIN").show();
 };
@@ -883,6 +884,83 @@ game.auto.npcList.proto = class{
 			
 		}
 	}
+}
+
+game.auto.Mouse_onMouseMove = function(){
+	if(!game.player){
+		
+	}
+	let sSelector = "#AUTO_UI_MAIN .ui-slot";
+	$(sSelector).unbind("mousemove");
+	$(sSelector).mousemove(function(event){
+	
+		if($(this).hasClass("no-mouse-events")){
+			return;
+		}
+
+		let bPreventDefault = false;
+
+		let oPos = {
+			"x": event.offsetX, "y": event.offsetY,
+			"pageX": event.pageX, "pageY": event.pageY,
+			"rx": game.RxToPx(event.pageX), "ry": game.RyToPy(event.pageY),
+			"radiant": false,
+			"rotation": false
+		};
+		
+		if(!game.scene.main.layer.main.visible){
+			return;
+		}
+		let self = $(this);
+		if(game.player){
+			if(self.hasClass("ui-slot")){
+				let slotType = self.attr("data-slot-type");
+				let slotID = self.attr("data-slot-id");
+				let oContent = false;
+				let oContentType = "item";
+				
+				if(slotType == "auto-skill"){
+					oContentType = "skill";
+					let sid = self.attr("data-sid");
+					if(sid){
+						if(game.player.skills.hasOwnProperty(sid)){
+							oContent = game.player.skills[sid];
+						}else{
+							oContent = new skill({"sid": sid, "level": false});
+						}
+					}
+				}
+				
+				if(oContent){
+					bColission = true;
+					bPreventDefault = true;
+					if(game.mouse.hoverElement !== false && (slotType != game.mouse.hoverElement.slotType || slotID != game.mouse.hoverElement.slotID)){
+						if(game.mouse.tooltipElement !== false){
+							game.mouse.tooltipElement.remove();
+							game.mouse.tooltipElement = false;
+						}
+					}
+					game.mouse.hoverElement = {
+						"type": oContentType,
+						"object": oContent,
+						"slotType": slotType,
+						"slotID": slotID
+					};
+				}
+			}
+		}
+		
+		if(bColission === false){
+			game.mouse.hoverElement = false;
+		}
+		
+		game.mouse.refreshTooltip();
+		
+		if(bPreventDefault){
+			event.preventDefault();
+			return false;
+		}
+	});
 }
 
 
