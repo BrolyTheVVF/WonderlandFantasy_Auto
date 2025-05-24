@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-21.001
+// @version      2025-05-24.001
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -865,5 +865,5 @@ $(document).ready(() => {
 });
 
 
-},5000);
+},10000);
 })()
