@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-31.001
+// @version      2025-05-31.002
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -29,6 +29,8 @@ game.auto.current = {
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
+	
+	"Combat_skillRotation": [],
 	
 	//Change the way ignored NPC works so they only get ingnored for like a minute
 	"ignoredNPC": [],
@@ -578,7 +580,7 @@ game.auto.onTickEvent.idle = function(){
 	//Search for next target
 	let oClosest = game.auto.Combat_getClosestEntity();
 	if(oClosest){
-		console.log("Auto -> new target select [" + oClosest.uid + "]");
+		if(game.IS_PTR){console.log("Auto -> new target select [" + oClosest.uid + "]");}
 		game.setLockON(oClosest.uid, true, "auto");
 		if(game.auto.setting.fixedSite){
 			game.auto.setState("combat");
@@ -588,10 +590,20 @@ game.auto.onTickEvent.idle = function(){
 	}
 };
 game.auto.onTickEvent.combat = function(){
-	if(!game.player.lockOn || game.player.lockOn.isDead){
+	if(!game.player.lockOn || game.player.lockOn.isDead || game.player.lockOn.uid === game.player.uid){
 		game.auto.current.ignoredNPC = [];
 		game.auto.current.previousDistance = false;
+		game.player.setLockON(false)
 		game.auto.setState("idle");
+		game.auto.current.tickDelay = Date.now() + 100;
+		return;
+	}
+	if(game.player.lockOn && !game.player.canDamage(game.player.lockOn)){
+		game.auto.current.ignoredNPC = [];
+		game.auto.current.previousDistance = false;
+		game.player.setLockON(false)
+		game.auto.setState("idle");
+		game.auto.current.tickDelay = Date.now() + 100;
 		return;
 	}
 	if(!game.auto.Combat_isInRange()){
@@ -617,7 +629,9 @@ game.auto.onTickEvent.combat = function(){
 		game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
-	for(let SkillID in game.player.skills){
+	for(let i = 0; i < game.auto.current.Combat_skillRotation.length; i++){
+		let SkillID = game.auto.current.Combat_skillRotation[i];
+	// for(let SkillID in game.player.skills){
 	// for(let i = 0; i < game.auto.slots.length; i++){
 		// let SkillID = game.auto.slots[i];
 		let oSkill = game.player.skills[SkillID];
@@ -639,8 +653,12 @@ game.auto.onTickEvent.combat = function(){
 				game.player.askCastSkillTo(SkillID, {"x": game.player.lockOn.x, "y": game.player.lockOn.y});
 			}else{
 				game.player.askCastSkill(SkillID);
-				continue;
+				// continue;
 			}
+			//We move the skill back to the end so that his priority is last
+			game.auto.current.Combat_skillRotation.splice(i , 1);
+			game.auto.current.Combat_skillRotation.push(SkillID);
+			
 			game.auto.current.tickDelay = Date.now() + 100;
 			return;
 		}
@@ -683,7 +701,7 @@ game.auto.onTickEvent.reaching = function(){
 };
 game.auto.setState = function(sState){
 	game.auto.current.state = sState;
-	console.log("Auto -> new state", sState);
+	if(game.IS_PTR){console.log("Auto -> new state", sState);}
 	if(sState === "idle"){
 		if(game.player.isWalking){
 			game.setTarget(game.player.x, game.player.y);
@@ -700,6 +718,7 @@ game.auto.setState = function(sState){
 				game.setTarget(game.player.x, game.player.y);
 			}
 			game.player.inAutoAttack = true;
+			game.auto.Combat_skillBuildRotation();
 		}else{
 			game.player.inAutoAttack = false;
 		}
@@ -755,10 +774,11 @@ game.auto.Combat_isInRange = function(oEntity){
 		return false;
 	}
 	
-	for(let i = 0; i < game.auto.slots.length; i++){
-		let SkillID = game.auto.slots[i];
+	for(let SkillID in game.player.skills){
+	// for(let i = 0; i < game.auto.slots.length; i++){
+		// let SkillID = game.auto.slots[i];
 		let oSkill = game.player.skills[SkillID];
-		if(!game.auto.Combat_skillIsValid(oSkill)){
+		if(game.auto.Combat_skillGetState(SkillID, ((game.auto.Combat_skillIsValid(oSkill))?'on':'off')) !== 'on'){
 			continue;
 		}
 		if(!oSkill.inRange(game.player, ((oEntity)?oEntity:game.player.lockOn))){
@@ -781,9 +801,38 @@ game.auto.Combat_skillIsValid = function(oSkill){
 };
 game.auto.Combat_skillSetState = function(SkillID, bEnabled){
 	game.cookie.set("AUTO-SKILL-" + SkillID, bEnabled);
+	let i = game.auto.current.Combat_skillRotation.indexOf(SkillID);
+	if(bEnabled === 'on'){
+		if(i < 0){
+			game.auto.current.Combat_skillRotation.push(SkillID);
+		}
+	}else{
+		if(i >= 0){
+			game.auto.current.Combat_skillRotation.splice(i , 1);
+		}
+	}
 };
 game.auto.Combat_skillGetState = function(SkillID, bDefault){
 	return game.cookie.get("AUTO-SKILL-" + SkillID, bDefault);
+};
+
+//Latter use this to buile a rotation with a priority config, either already prebuilt or configured by the player
+game.auto.Combat_skillBuildRotation = function(){
+	game.auto.current.Combat_skillRotation = [];
+	let sSkillBase = game.player.classe + "_base";
+	for(let SkillID in game.player.skills){
+		if(sSkillBase === SkillID){
+			continue;
+		}
+		
+		let oSkill = game.player.skills[SkillID];
+		if(game.auto.Combat_skillGetState(SkillID, ((game.auto.Combat_skillIsValid(oSkill))?'on':'off')) !== 'on'){
+			continue;
+		}
+		game.auto.current.Combat_skillRotation.push(SkillID);
+	}
+	
+	
 };
 game.auto.pickupItems = function(){
 	let l = [];

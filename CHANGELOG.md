@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-05-31.002]
+
+### 💾 Improvements
+- Player's target now properly reset when the target is the player itself or an NPC that cannot be attacked
+- Added a first version of skill rotation: skill will be set to the end of the rotation every time they are used, so all skill can be used as evenly as possible
+- Console logs will only show on PTR to improve live performance
+
+### ✅ Fixes
+- In range check now properly uses all selected skill ranges to be sure all skills can be performed
+
+
 ## [2025-05-31.001]
 
 ### ✅ Fixes
