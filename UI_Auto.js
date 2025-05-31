@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-24.002
+// @version      2025-05-31.001
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -389,7 +389,7 @@ game.auto.refreshUI_Settings = function(){
 		if(!oSkill.proto || oSkill.proto.isPassive){
 			continue;
 		}
-		let bValid = game.cookie.get("AUTO-SKILL-" + k, game.auto.Combat_skillIsValid(oSkill));
+		let bValid = game.auto.Combat_skillGetState(k, ((game.auto.Combat_skillIsValid(oSkill))?'on':'off')) === 'on';
 		
 		// sSkillHtml += ''
 			// + '<div class="auto-p2h-skill-card">'
@@ -407,7 +407,7 @@ game.auto.refreshUI_Settings = function(){
 		sSkillHtml += HTML_UI_BuildSlot("", "auto-skill", k, oSkill).outerHTML;
 		sSkillHtml += '</div>';
 		sSkillHtml += '<div class="auto-p2h-sc-foot">';
-		sSkillHtml += '<input type="checkbox" ' + ((bValid)?' checked':'') + ' onchange="game.auto.Combat_skillSetState(\'' + k + '\', this.checked)" />';
+		sSkillHtml += '<input type="checkbox" ' + ((bValid)?' checked':'') + ' onchange="game.auto.Combat_skillSetState(\'' + k + '\', ((this.checked)?\'on\':\'off\'))" />';
 		sSkillHtml += '</div>';
 		sSkillHtml += '</div>';
 	}
@@ -625,7 +625,7 @@ game.auto.onTickEvent.combat = function(){
 			continue;
 		}
 		// if(!game.auto.Combat_skillIsValid(oSkill)){
-		if(!game.cookie.get("AUTO-SKILL-" + SkillID, game.auto.Combat_skillIsValid(oSkill))){
+		if(game.auto.Combat_skillGetState(SkillID, ((game.auto.Combat_skillIsValid(oSkill))?'on':'off')) !== 'on'){
 			continue;
 		}
 		
@@ -781,6 +781,9 @@ game.auto.Combat_skillIsValid = function(oSkill){
 };
 game.auto.Combat_skillSetState = function(SkillID, bEnabled){
 	game.cookie.set("AUTO-SKILL-" + SkillID, bEnabled);
+};
+game.auto.Combat_skillGetState = function(SkillID, bDefault){
+	return game.cookie.get("AUTO-SKILL-" + SkillID, bDefault);
 };
 game.auto.pickupItems = function(){
 	let l = [];

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-05-31.001]
+
+### ✅ Fixes
+- Skill selection is now properly saved
+
+
 ## [2025-05-24.002]
 
 ### 💾 Improvements
