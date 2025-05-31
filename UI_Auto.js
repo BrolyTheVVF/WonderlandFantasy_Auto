@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-31.002
+// @version      2025-05-31.003
 // @description  try to take over the world!
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -234,6 +234,10 @@ game.auto.buildInterface = function(){
 		
 		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
+		
+		//Test debug missing icon
+		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-HEALTH_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4001.png) !important;}'
+		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-MANA_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4002.png) !important;}'
 		
 		+ '</style>'
 	));
@@ -655,6 +659,7 @@ game.auto.onTickEvent.combat = function(){
 				game.player.askCastSkill(SkillID);
 				// continue;
 			}
+			if(game.IS_PTR){console.log("Auto -> Combat - using skill [" + SkillID + "]");}
 			//We move the skill back to the end so that his priority is last
 			game.auto.current.Combat_skillRotation.splice(i , 1);
 			game.auto.current.Combat_skillRotation.push(SkillID);
@@ -779,6 +784,10 @@ game.auto.Combat_isInRange = function(oEntity){
 		// let SkillID = game.auto.slots[i];
 		let oSkill = game.player.skills[SkillID];
 		if(game.auto.Combat_skillGetState(SkillID, ((game.auto.Combat_skillIsValid(oSkill))?'on':'off')) !== 'on'){
+			continue;
+		}
+		//Skill doesn't use the range attribute
+		if(!oSkill.proto.useOnGround && (!oSkill.proto.useOnEntity || !oSkill.proto.targetEnnemy)){
 			continue;
 		}
 		if(!oSkill.inRange(game.player, ((oEntity)?oEntity:game.player.lockOn))){

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-05-31.003]
+
+### ✅ Fixes
+- Forced health and mana buff icon to replace currently missing one
+- In range check now properly ignore skills that doesn't target either the ground or another entity
+
+
 ## [2025-05-31.002]
 
 ### 💾 Improvements
