@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-05.001]
+
+### ✅ Fixes
+- Elite and Chief config now properly work and saves itself
+
+### 💾 Improvements
+- Delay after using a potion has been reduced
+
+
 ## [2025-05-31.003]
 
 ### ✅ Fixes

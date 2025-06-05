@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-05-31.003
-// @description  try to take over the world!
+// @version      2025-06-05.001
+// @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=wonderland-fantasy.com
@@ -24,8 +24,6 @@ game.auto.HTML = false;
 game.auto.current = {
 	"map": false,
 	"npcList": {},
-	"attackElite": true,
-	"attackChief": true,
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
@@ -48,6 +46,9 @@ game.auto.setting = {
 	"ruleMP_1_Action": "",
 	"ruleMP_2_Pct": false,
 	"ruleMP_2_Action": "",
+	
+	"attackElite": 'on',
+	"attackChief": 'on',
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -97,11 +98,11 @@ game.auto.buildInterface = function(){
 							+ '<div class="ui-btn-table-sm-right"></div>'
 						+ '</div>'
 						+ '<div class="auto-setting-attackElite">'
-							+ '<input onchange="game.auto.current.attackElite = this.checked" type="checkbox" checked />'
+							+ '<input onchange="game.auto.setSetting(\'attackElite\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('attackElite', 'on') === 'on')?' checked':'') + ' />'
 							+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.attackElite') + '</span>'
 						+ '</div>'
 						+ '<div class="auto-setting-attackChief">'
-							+ '<input onchange="game.auto.current.attackChief = this.checked" type="checkbox" checked />'
+							+ '<input onchange="game.auto.setSetting(\'attackChief\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('attackChief', 'on') === 'on')?' checked':'') + ' />'
 							+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.attackChief') + '</span>'
 						+ '</div>'
 					+ '</div>'
@@ -275,6 +276,13 @@ game.auto.buildInterface = function(){
 game.auto.setSetting = function(k, v){
 	game.auto.setting[k] = v;
 	game.cookie.set("AUTO-SETTING-" + k, v);
+}
+game.auto.getSetting = function(k, sDef){
+	if(!game.auto.setting.hasOwnProperty(k)){
+		return sDef;
+	}
+	return game.auto.setting[k];
+	// game.cookie.set("AUTO-SETTING-" + k, v);
 }
 
 game.auto.refreshUI = function(){
@@ -496,7 +504,7 @@ game.auto.onTick = function(){
 	}
 	game.auto.npcList.check();
 	
-	if(game.auto.current.active === true){
+	if(game.auto.current.active === true && !game.map.current.isSpecial){
 		game.auto.checkRules();
 		game.auto.pickupItems();
 		game.auto.pickupSouls();
@@ -520,7 +528,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleHP_1_Action);
-			game.auto.current.tickDelay = Date.now() + 5000;
+			game.auto.current.tickDelay = Date.now() + 2500;
 		}
 	}
 	if(game.auto.setting.ruleHP_2_Pct && game.auto.setting.ruleHP_2_Pct * 10 >= nHP && game.auto.setting.ruleHP_2_Action){
@@ -531,7 +539,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleHP_2_Action);
-			game.auto.current.tickDelay = Date.now() + 5000;
+			game.auto.current.tickDelay = Date.now() + 2500;
 		}
 	}
 	
@@ -543,7 +551,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleMP_1_Action);
-			game.auto.current.tickDelay = Date.now() + 5000;
+			game.auto.current.tickDelay = Date.now() + 2500;
 		}
 	}
 	if(game.auto.setting.ruleMP_2_Pct && game.auto.setting.ruleMP_2_Pct * 10 >= nMP && game.auto.setting.ruleMP_2_Action){
@@ -554,7 +562,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleMP_2_Action);
-			game.auto.current.tickDelay = Date.now() + 5000;
+			game.auto.current.tickDelay = Date.now() + 2500;
 		}
 	}
 };
@@ -602,7 +610,7 @@ game.auto.onTickEvent.combat = function(){
 		game.auto.current.tickDelay = Date.now() + 100;
 		return;
 	}
-	if(game.player.lockOn && !game.player.canDamage(game.player.lockOn)){
+	if(game.player.lockOn && (!game.player.canDamage(game.player.lockOn) || game.player.lockOn.isPC)){
 		game.auto.current.ignoredNPC = [];
 		game.auto.current.previousDistance = false;
 		game.player.setLockON(false)
@@ -747,10 +755,10 @@ game.auto.Combat_getClosestEntity = function(){
 			if(!game.auto.current.npcList[MID].selected){
 				continue;
 			}
-			if(oEntity.isElite && !game.auto.current.attackElite){
+			if(oEntity.hasBuff("MOB_ELITE") && game.auto.getSetting('attackElite', 'on') !== 'on'){
 				continue;
 			}
-			if(oEntity.isChief && !game.auto.current.attackChief){
+			if(oEntity.hasBuff("MOB_CHIEF") && game.auto.getSetting('attackChief', 'on') !== 'on'){
 				continue;
 			}
 			//If only fixed site and entity is not in range
