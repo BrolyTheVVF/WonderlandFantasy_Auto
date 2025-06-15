@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ### 🔮 Upcoming Features / Changes / Fixes
 - Path finding inside maps
 - Path finding between maps
+- Add auto quest
 - LoS check to better check what next target to choose (and not just raw distance to the player)
 - When in sitting mode and receiving damages, go back to combat mode
 - In the setting, be able to toggle base attacks
