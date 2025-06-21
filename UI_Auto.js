@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-21.001
+// @version      2025-06-21.002
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -518,13 +518,17 @@ game.auto.onTick = function(){
 	}
 	game.auto.npcList.check();
 	
+	game.auto.triggerEvent("onTick",[]);
+	
 	if(game.auto.current.active === true && !game.map.current.isSpecial){
+		game.auto.triggerEvent("onActiveTick",[]);
 		game.auto.checkRules();
 		game.auto.pickupItems();
 		game.auto.pickupSouls();
 		game.auto.onTickEvent[game.auto.current.state]();
 	}else{
 		game.auto.current.state = "idle";
+		game.auto.triggerEvent("onInactiveTick",[]);
 	}
 	
 	requestAnimationFrame(game.auto.onTick);
@@ -897,7 +901,10 @@ game.auto.pickupItems = function(){
 		if(oDrop.owners && oDrop.owners !== false && oDrop.owners.indexOf(game.player.uid) < 0){
 			continue;
 		}
-		l.push(k);
+		if(!game.group.o || game.utilities.inCircleRange(game.player, oDrop, 600)){
+			l.push(k);
+		}
+		// l.push(k);
 	}
 	if(l.length === 0){
 		return;
@@ -910,10 +917,11 @@ game.auto.pickupSouls = function(){
 		game.auto.current.tickDelay = Date.now() + 500;
 		return;
 	}
-	if(game.SOUL_GATHERING.isActive() && game.player.specialsCount.SOUL_GATHERING_LAST !== false){
+	if(game.SOUL_GATHERING.isActive()){
 		let nColor = game.player.specialsCount.SOUL_GATHERING_LAST;
-		if(!nColor){
-			nColor = 2;
+		if(nColor === false && Object.keys(game.SOUL_GATHERING.list).length > 0){
+			nColor = game.SOUL_GATHERING.list[Object.keys(game.SOUL_GATHERING.list)[0]].color
+			// nColor = 2;
 		}
 		let oGatherList = [];
 		for(let k in game.SOUL_GATHERING.list){
@@ -1072,6 +1080,66 @@ game.auto.Mouse_onMouseMove = function(){
 }
 
 
+game.auto.events = {};
+game.auto.events.list = {};
+
+game.auto.triggerEvent = function(t, a){
+	if(!game.auto.events.list.hasOwnProperty(t)){
+		// console.warn("game.auto.events doesn't have a valid [" + t + "] registered event");
+		return;
+	}
+	for(let k in game.auto.events.list[t]){
+		//We never know
+		if(!game.auto.events.list[t][k] || typeof game.auto.events.list[t][k] !== "function"){
+			continue;
+		}
+		game.auto.events.list[t][k](...a);
+	}
+};
+
+game.auto.registerEvent = function(t, k, f){
+	if(typeof f !== "function"){
+		console.error("game.auto.registerEvent => WARNING, TRYING TO REGISTER AN EVENT WITHOUT A VALID FUNCTION");
+		console.log(t);
+		console.log(k);
+		console.log(f);
+		return false;
+	}
+	if(!game.auto.events.list.hasOwnProperty(t)){
+		game.auto.events.list[t] = {};
+	}
+	game.auto.events.list[t][k] = f;
+};
+game.auto.unregisterEvent = function(t, k){
+	if(!game.auto.events.list.hasOwnProperty(t)){
+		game.auto.events.list[t] = {};
+	}
+	delete game.auto.events.list[t][k];
+};
+
+game.auto.registerEvent("onTick", "main", function(){
+	
+});
+game.auto.registerEvent("onActiveTick", "main", function(){
+	
+});
+game.auto.registerEvent("onInactiveTick", "main", function(){
+	
+});
+
+
+game.auto.registerEvent("onActiveTick", "onlineTimeReward", function(){
+	if(!game.online_time_reward.isActive()){
+		return;
+	}
+	let nTimeLeft = game.online_time_reward.getTimeLeft();
+	if(nTimeLeft === false || nTimeLeft > 0){
+		return;
+	}
+	game.auto.current.tickDelay = Date.now() + 1500;
+	game._emit("onlineTimeReward_gatherReward");
+});
+
 
 $(document).ready(() => {
 	game.UI.list.push(game.auto);
@@ -1095,6 +1163,22 @@ $(document).ready(() => {
 	
 	locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
 	locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
+	
+	game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
+		if(!game.player){return;}
+		game.player.onlineTimeRewardStep = onlineTimeRewardStep;
+		game.player.loginCumulatedTime = 0;
+		game.player.loginTime = Date.now();
+		if(game.auto.current.active){
+			return;
+		}
+		let sHtml = "";
+		for(let i = 0; i < oRewards.length; i++){
+			let oItem = new item(oRewards[i]);
+			sHtml += HTML_UI_BuildSlot("", "onlineTimeReward", i, oItem).outerHTML;
+		}
+		game.renderPopup(LC_TEXT(game.lang, "general.label.reward"),sHtml,200,140,[{"id": "OK", "text": LC_TEXT(game.lang, "UI.windows.confirm"), "onclick": function(){}, "escapeClick": true, "enterValidate": true}]);
+	};
 	
 	game.auto.onTick();
 	game.UI.refreshUI()

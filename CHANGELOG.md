@@ -13,6 +13,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-21.002]
+
+### 💾 Improvements
+- Fixed the soul gathering forcing blue orb when picking yellow ones
+- When in group, added range to item pickups so that the player doesn't take everything
+
+### ➕ Added
+- When auto is ON, now pickup online time reward
+
+
 ## [2025-06-21.001]
 
 ### 💾 Improvements
