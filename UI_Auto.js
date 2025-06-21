@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-05.001
+// @version      2025-06-21.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -27,6 +27,7 @@ game.auto.current = {
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
+	"CharacterSelected": false,
 	
 	"Combat_skillRotation": [],
 	
@@ -470,16 +471,32 @@ game.auto.toggleStart = function(){
 game.auto.start = function(){
 	game.auto.current.active = true;
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.stop'));
+	if(game.player){
+		game.auto.current.CharacterSelected = game.player.uid;
+	}
 };
 game.auto.stop = function(){
 	game.auto.current.active = false;
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.start'));
+	//Only update if you are in game in case you  press n by mistake on the character selection waiting for the game to load back in
+	if(game.player){
+		game.auto.current.CharacterSelected = false;
+	}
 };
 
 
 
 game.auto.onTick = function(){
+	
+	if(Date.now() < game.auto.current.tickDelay){
+		requestAnimationFrame(game.auto.onTick);
+		return;
+	}
+	
 	if(!game.player){
+		
+		game.auto.onCharSelScreen();
+		
 		requestAnimationFrame(game.auto.onTick);
 		return;
 	}
@@ -488,13 +505,10 @@ game.auto.onTick = function(){
 		requestAnimationFrame(game.auto.onTick);
 		return;
 	}
-	
-	if(Date.now() < game.auto.current.tickDelay){
-		requestAnimationFrame(game.auto.onTick);
-		return;
-	}
 	//Currently to prevent a maximum the spam bug, force a delay in between ticks
 	game.auto.current.tickDelay = Date.now() + 50;
+	//Force reset this to false as i forgot to make it proprely rest in some cases
+	game.login.selected.pending = false;
 	
 	
 	if(game.auto.current.map !== game.player.map){
@@ -516,6 +530,27 @@ game.auto.onTick = function(){
 	requestAnimationFrame(game.auto.onTick);
 };
 
+game.auto.onCharSelScreen = function(){
+	if(!game.auto.current.CharacterSelected){
+		return;
+	}
+	if(!game.scene.login.scene.visible){
+		return;
+	}
+	if(game.login.selected.pending){
+		return;
+	}
+	for(let i = 1; i <= 3; i++){
+		if(game.login["selchar" + i].uid !== game.auto.current.CharacterSelected){
+			continue;
+		}
+		game.login["selchar" + i].__onClick();
+		game.login.validButton.__onClick();
+		game.auto.current.tickDelay = Date.now() + 100;
+		return;
+	}
+	// game.login.selected.uid = game.auto.current.CharacterSelected;
+};
 game.auto.checkRules = function(){
 	let nHP = game.player.health.value / game.player.health.max * 100;
 	let nMP = game.player.mana.value / game.player.mana.max * 100;
@@ -528,7 +563,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleHP_1_Action);
-			game.auto.current.tickDelay = Date.now() + 2500;
+			game.auto.current.tickDelay = Date.now() + 500;
 		}
 	}
 	if(game.auto.setting.ruleHP_2_Pct && game.auto.setting.ruleHP_2_Pct * 10 >= nHP && game.auto.setting.ruleHP_2_Action){
@@ -539,7 +574,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleHP_2_Action);
-			game.auto.current.tickDelay = Date.now() + 2500;
+			game.auto.current.tickDelay = Date.now() + 500;
 		}
 	}
 	
@@ -551,7 +586,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleMP_1_Action);
-			game.auto.current.tickDelay = Date.now() + 2500;
+			game.auto.current.tickDelay = Date.now() + 500;
 		}
 	}
 	if(game.auto.setting.ruleMP_2_Pct && game.auto.setting.ruleMP_2_Pct * 10 >= nMP && game.auto.setting.ruleMP_2_Action){
@@ -562,7 +597,7 @@ game.auto.checkRules = function(){
 			}
 		}else{
 			game.useItemByIID(game.auto.setting.ruleMP_2_Action);
-			game.auto.current.tickDelay = Date.now() + 2500;
+			game.auto.current.tickDelay = Date.now() + 500;
 		}
 	}
 };
@@ -665,12 +700,13 @@ game.auto.onTickEvent.combat = function(){
 				game.player.askCastSkillTo(SkillID, {"x": game.player.lockOn.x, "y": game.player.lockOn.y});
 			}else{
 				game.player.askCastSkill(SkillID);
-				// continue;
 			}
 			if(game.IS_PTR){console.log("Auto -> Combat - using skill [" + SkillID + "]");}
 			//We move the skill back to the end so that his priority is last
-			game.auto.current.Combat_skillRotation.splice(i , 1);
+			game.auto.current.Combat_skillRotation.splice(i, 1);
 			game.auto.current.Combat_skillRotation.push(SkillID);
+			
+			if(game.IS_PTR){console.log(game.auto.current.Combat_skillRotation);}
 			
 			game.auto.current.tickDelay = Date.now() + 100;
 			return;

@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ### 🔮 Upcoming Features / Changes / Fixes
+- Auto relog if auto was started and connection is lost
 - Path finding inside maps
 - Path finding between maps
 - Add auto quest
@@ -12,6 +13,15 @@ All notable changes to this project will be documented in this file.
 - Add some kind of delay for not in range items before picking them up
 
 ---
+
+## [2025-06-21.001]
+
+### 💾 Improvements
+- Delay after using a potion has been reduced again and should be in a much better state now between waiting for lag and not waisting too much time
+
+### ➕ Added
+- Auto relog on the character when auto is ON and the connection in interupted
+
 
 ## [2025-06-05.001]
 
