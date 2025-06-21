@@ -3,7 +3,6 @@
 All notable changes to this project will be documented in this file.
 
 ### 🔮 Upcoming Features / Changes / Fixes
-- Auto relog if auto was started and connection is lost
 - Path finding inside maps
 - Path finding between maps
 - Add auto quest
