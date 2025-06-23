@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-21.002
+// @version      2025-06-23.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -1080,6 +1080,8 @@ game.auto.Mouse_onMouseMove = function(){
 }
 
 
+game.auto.on_replaced = {};
+
 game.auto.events = {};
 game.auto.events.list = {};
 
@@ -1126,8 +1128,11 @@ game.auto.registerEvent("onActiveTick", "main", function(){
 game.auto.registerEvent("onInactiveTick", "main", function(){
 	
 });
+game.auto.registerEvent("onAfterDamage", "main", function(){
+	
+});
 
-
+//Online Time Reward auto gather
 game.auto.registerEvent("onActiveTick", "onlineTimeReward", function(){
 	if(!game.online_time_reward.isActive()){
 		return;
@@ -1138,6 +1143,29 @@ game.auto.registerEvent("onActiveTick", "onlineTimeReward", function(){
 	}
 	game.auto.current.tickDelay = Date.now() + 1500;
 	game._emit("onlineTimeReward_gatherReward");
+});
+
+//Auto lock ennemies
+game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage, fromUid, newHealthPoint){
+	if(!game.player || targetUid !== game.player.uid){
+		// console.log("game.auto.event::onAfterDamage.targetUid => ", targetUid, game.player.uid);
+		return;
+	}
+	if(!fromUid || fromUid === game.player.uid){
+		// console.log("game.auto.event::onAfterDamage.fromUid => ", fromUid, game.player.uid);
+		return;
+	}
+	if(game.player.lockOn && !game.player.lockOn.isDead){
+		// console.log("game.auto.event::onAfterDamage.lockOn => ", game.player.lockOn);
+		return;
+	}
+	if(game.entities[fromUid].isPC){
+		return;
+	}
+	game.player.setLockON(game.entities[fromUid]);
+	if(game.auto.current.active === true){
+		game.auto.setState("combat");
+	}
 });
 
 
@@ -1181,7 +1209,16 @@ $(document).ready(() => {
 	};
 	
 	game.auto.onTick();
-	game.UI.refreshUI()
+	game.UI.refreshUI();
+	
+	game.auto.on_replaced.damage = game.on.damage;
+	game.on.damage = function(...args){
+		console.log("game.on.damage", args);
+		game.auto.triggerEvent("onBeforeDamage",args);
+		game.auto.on_replaced.damage(...args);
+		game.auto.triggerEvent("onAfterDamage",args);
+	}
+	
 });
 }
 

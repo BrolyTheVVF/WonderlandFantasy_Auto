@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-23.001]
+
+### ➕ Added
+- When taking damages with no target, auto lock the source if it's not a player, and attack it if the bot was in resting mode
+
+
 ## [2025-06-21.002]
 
 ### 💾 Improvements
