@@ -9,6 +9,17 @@
 // @grant        none
 // ==/UserScript==
 
+function loadExternalScript(url) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.type = 'text/javascript';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
 (function() {
 function ___autoInit(){
 if(!game || (!game.player && (!game.scene || !game.scene.login || !game.scene.login.scene.visible))){
@@ -17,6 +28,8 @@ if(!game || (!game.player && (!game.scene || !game.scene.login || !game.scene.lo
 	},1000);
 	return;
 }
+
+const GH_SOURCE_PATH = "https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/";
 
 game.auto = {};
 game.auto.__isBuild = false;
@@ -1176,54 +1189,60 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 
 
 $(document).ready(() => {
-	game.UI.list.push(game.auto);
-	locale["UI.windows.auto.title"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
-	locale["UI.windows.auto.tab.auto"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
-	locale["UI.windows.auto.tab.settings"] = {"en": "Settings", "fr": "Paramètres"};
-	locale["UI.windows.auto.tab.monsters"] = {"en": "Monsters", "fr": "Monstres"};
 	
-	locale["UI.windows.auto.btn.start"] = {"en": "Start", "fr": "Démarer"};
-	locale["UI.windows.auto.btn.stop"] = {"en": "Stop", "fr": "Arrêter"};
-	
-	locale["UI.windows.auto.setting.attackElite"] = {"en": "Attack elites", "fr": "Attaquer les elites"};
-	locale["UI.windows.auto.setting.attackChief"] = {"en": "Attack chiefs", "fr": "Attaquer les chefs"};
-	locale["UI.windows.auto.setting.fixedSite.no"] = {"en": "Move and attack", "fr": "Attaquer et se déplacer"};
-	locale["UI.windows.auto.setting.fixedSite.yes"] = {"en": "Attack & don't move", "fr": "Attaquer et ne pas se déplacer"};
-	locale["UI.windows.auto.setting.fixedSite.no.description"] = {"en": "The character will patrol the map to kill monsters", "fr": "Le personnage patrouillera sur la carte pour tuer des monstres."};
-	// locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will patrol in a certain area to kill monsters", "fr": "Le personnage patrouillera dans une certaine zone pour tuer des monstres."};
-	locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will stand still and kill monsters that are in range", "fr": "Le personnage reste immobile et tue les monstres qui sont à sa portée."};
-	
-	locale["UI.windows.auto.setting.rule.under"] = {"en": "Lower than {0}%", "fr": "En dessous de {0}%"};
-	
-	locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
-	locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
-	
-	game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
-		if(!game.player){return;}
-		game.player.onlineTimeRewardStep = onlineTimeRewardStep;
-		game.player.loginCumulatedTime = 0;
-		game.player.loginTime = Date.now();
-		if(game.auto.current.active){
-			return;
+	(async () => {
+		await loadExternalScript(GH_SOURCE_PATH + 'hello.js');
+		// await loadExternalScript('https://autredomaine.net/libs/utils.js');
+
+		game.UI.list.push(game.auto);
+		locale["UI.windows.auto.title"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
+		locale["UI.windows.auto.tab.auto"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
+		locale["UI.windows.auto.tab.settings"] = {"en": "Settings", "fr": "Paramètres"};
+		locale["UI.windows.auto.tab.monsters"] = {"en": "Monsters", "fr": "Monstres"};
+		
+		locale["UI.windows.auto.btn.start"] = {"en": "Start", "fr": "Démarer"};
+		locale["UI.windows.auto.btn.stop"] = {"en": "Stop", "fr": "Arrêter"};
+		
+		locale["UI.windows.auto.setting.attackElite"] = {"en": "Attack elites", "fr": "Attaquer les elites"};
+		locale["UI.windows.auto.setting.attackChief"] = {"en": "Attack chiefs", "fr": "Attaquer les chefs"};
+		locale["UI.windows.auto.setting.fixedSite.no"] = {"en": "Move and attack", "fr": "Attaquer et se déplacer"};
+		locale["UI.windows.auto.setting.fixedSite.yes"] = {"en": "Attack & don't move", "fr": "Attaquer et ne pas se déplacer"};
+		locale["UI.windows.auto.setting.fixedSite.no.description"] = {"en": "The character will patrol the map to kill monsters", "fr": "Le personnage patrouillera sur la carte pour tuer des monstres."};
+		// locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will patrol in a certain area to kill monsters", "fr": "Le personnage patrouillera dans une certaine zone pour tuer des monstres."};
+		locale["UI.windows.auto.setting.fixedSite.yes.description"] = {"en": "The character will stand still and kill monsters that are in range", "fr": "Le personnage reste immobile et tue les monstres qui sont à sa portée."};
+		
+		locale["UI.windows.auto.setting.rule.under"] = {"en": "Lower than {0}%", "fr": "En dessous de {0}%"};
+		
+		locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
+		locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
+		
+		game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
+			if(!game.player){return;}
+			game.player.onlineTimeRewardStep = onlineTimeRewardStep;
+			game.player.loginCumulatedTime = 0;
+			game.player.loginTime = Date.now();
+			if(game.auto.current.active){
+				return;
+			}
+			let sHtml = "";
+			for(let i = 0; i < oRewards.length; i++){
+				let oItem = new item(oRewards[i]);
+				sHtml += HTML_UI_BuildSlot("", "onlineTimeReward", i, oItem).outerHTML;
+			}
+			game.renderPopup(LC_TEXT(game.lang, "general.label.reward"),sHtml,200,140,[{"id": "OK", "text": LC_TEXT(game.lang, "UI.windows.confirm"), "onclick": function(){}, "escapeClick": true, "enterValidate": true}]);
+		};
+		
+		game.auto.onTick();
+		game.UI.refreshUI();
+		
+		game.auto.on_replaced.damage = game.on.damage;
+		game.on.damage = function(...args){
+			console.log("game.on.damage", args);
+			game.auto.triggerEvent("onBeforeDamage",args);
+			game.auto.on_replaced.damage(...args);
+			game.auto.triggerEvent("onAfterDamage",args);
 		}
-		let sHtml = "";
-		for(let i = 0; i < oRewards.length; i++){
-			let oItem = new item(oRewards[i]);
-			sHtml += HTML_UI_BuildSlot("", "onlineTimeReward", i, oItem).outerHTML;
-		}
-		game.renderPopup(LC_TEXT(game.lang, "general.label.reward"),sHtml,200,140,[{"id": "OK", "text": LC_TEXT(game.lang, "UI.windows.confirm"), "onclick": function(){}, "escapeClick": true, "enterValidate": true}]);
-	};
-	
-	game.auto.onTick();
-	game.UI.refreshUI();
-	
-	game.auto.on_replaced.damage = game.on.damage;
-	game.on.damage = function(...args){
-		console.log("game.on.damage", args);
-		game.auto.triggerEvent("onBeforeDamage",args);
-		game.auto.on_replaced.damage(...args);
-		game.auto.triggerEvent("onAfterDamage",args);
-	}
+	})();
 	
 });
 }
