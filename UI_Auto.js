@@ -1,24 +1,13 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-25.002
+// @version      2025-06-25.003
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=wonderland-fantasy.com
 // @grant        none
 // ==/UserScript==
-
-function loadExternalScript(url) {
-    return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = url;
-        s.type = 'text/javascript';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
-}
 
 (function() {
 function ___autoInit(){
@@ -29,7 +18,19 @@ if(!game || (!game.player && (!game.scene || !game.scene.login || !game.scene.lo
 	return;
 }
 
-const GH_SOURCE_PATH = "https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/";
+//HAVE TO FIND ANOTHER DOMAIN CAUSE THIS ONE CANNOT BE USED AS A CDN, IT'S AGAINST THE ToS OF GITHUB
+game.GH_SOURCE_PATH = "https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/";
+
+game.loadExternalScript = function(url) {
+    return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.type = 'text/javascript';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+};
 
 game.auto = {};
 game.auto.__isBuild = false;
@@ -1191,7 +1192,7 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 $(document).ready(() => {
 	
 	(async () => {
-		await loadExternalScript(GH_SOURCE_PATH + 'hello.js');
+		// await game.loadExternalScript(game.GH_SOURCE_PATH + 'hello.js');
 		// await loadExternalScript('https://autredomaine.net/libs/utils.js');
 
 		game.UI.list.push(game.auto);
