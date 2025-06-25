@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-23.001
+// @version      2025-06-25.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -11,7 +11,7 @@
 
 (function() {
 function ___autoInit(){
-if(!game || !game.player){
+if(!game || (!game.player && (!game.scene || !game.scene.login || !game.scene.login.scene.visible))){
 	setTimeout(() => {
 		___autoInit();
 	},1000);
@@ -27,7 +27,6 @@ game.auto.current = {
 	"active": false,
 	"state": "idle",
 	"tickDelay": 0,
-	"CharacterSelected": false,
 	
 	"Combat_skillRotation": [],
 	
@@ -50,6 +49,8 @@ game.auto.setting = {
 	
 	"attackElite": 'on',
 	"attackChief": 'on',
+	
+	"CharacterSelected": false,
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -472,7 +473,7 @@ game.auto.start = function(){
 	game.auto.current.active = true;
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.stop'));
 	if(game.player){
-		game.auto.current.CharacterSelected = game.player.uid;
+		game.auto.setSetting("CharacterSelected", game.player.uid);
 	}
 };
 game.auto.stop = function(){
@@ -480,7 +481,7 @@ game.auto.stop = function(){
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.start'));
 	//Only update if you are in game in case you  press n by mistake on the character selection waiting for the game to load back in
 	if(game.player){
-		game.auto.current.CharacterSelected = false;
+		game.auto.setSetting("CharacterSelected", false);
 	}
 };
 
@@ -491,6 +492,10 @@ game.auto.onTick = function(){
 	if(Date.now() < game.auto.current.tickDelay){
 		requestAnimationFrame(game.auto.onTick);
 		return;
+	}
+	
+	if(game.socket.readyState !== game.socket.OPEN && game.auto.current.active === true){
+		document.location = document.location.href;
 	}
 	
 	if(!game.player){
@@ -535,7 +540,7 @@ game.auto.onTick = function(){
 };
 
 game.auto.onCharSelScreen = function(){
-	if(!game.auto.current.CharacterSelected){
+	if(!game.auto.setting.CharacterSelected){
 		return;
 	}
 	if(!game.scene.login.scene.visible){
@@ -545,7 +550,7 @@ game.auto.onCharSelScreen = function(){
 		return;
 	}
 	for(let i = 1; i <= 3; i++){
-		if(game.login["selchar" + i].uid !== game.auto.current.CharacterSelected){
+		if(game.login["selchar" + i].uid !== game.auto.setting.CharacterSelected){
 			continue;
 		}
 		game.login["selchar" + i].__onClick();

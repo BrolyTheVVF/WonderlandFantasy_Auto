@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-25.001]
+
+### ✅ Fixes
+- Now should properly refresh the page and auto select the character when the game crashes or when you loose connection to the server
+
+
 ## [2025-06-23.001]
 
 ### ➕ Added
