@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-25.001
+// @version      2025-06-25.002
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -555,7 +555,8 @@ game.auto.onCharSelScreen = function(){
 		}
 		game.login["selchar" + i].__onClick();
 		game.login.validButton.__onClick();
-		game.auto.current.tickDelay = Date.now() + 100;
+		game.auto.current.tickDelay = Date.now() + 1000;
+		game.auto.start();
 		return;
 	}
 	// game.login.selected.uid = game.auto.current.CharacterSelected;
