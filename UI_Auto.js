@@ -1242,7 +1242,7 @@ $(document).ready(() => {
 		
 		game.auto.on_replaced.damage = game.on.damage;
 		game.on.damage = function(...args){
-			console.log("game.on.damage", args);
+			// console.log("game.on.damage", args);
 			game.auto.triggerEvent("onBeforeDamage",args);
 			game.auto.on_replaced.damage(...args);
 			game.auto.triggerEvent("onAfterDamage",args);
