@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-26.001]
+
+### ✅ Fixes
+- Now should properly uses skills that target the player itself like magic shield, heal ect
+
+
 ## [2025-06-25.001]
 
 ### ✅ Fixes

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-25.003
+// @version      2025-06-26.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -719,7 +719,11 @@ game.auto.onTickEvent.combat = function(){
 		}
 		if(oSkill.isReady(game.player)){
 			if(oSkill.proto.useOnEntity){
-				game.player.askCastSkillOn(SkillID, game.player.lockOn);
+				let oTarget = game.player.lockOn;
+				if(oSkill.proto.targetAlly){
+					oTarget = game.player;
+				}
+				game.player.askCastSkillOn(SkillID, oTarget);
 			}else if(oSkill.proto.useOnGround){
 				game.player.askCastSkillTo(SkillID, {"x": game.player.lockOn.x, "y": game.player.lockOn.y});
 			}else{
