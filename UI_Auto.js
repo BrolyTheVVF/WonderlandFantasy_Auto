@@ -238,7 +238,7 @@ game.auto.buildInterface = function(){
 		+ '<style id="WF_STYLE_AUTO_MAIN">'
 		
 		+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
-		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;}'
+		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;max-width: 100%;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
 		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
