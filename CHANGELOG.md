@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-27.001]
+
+### ➕ Added
+- Added an option to auto sell crafted gears when bag is almost full or crafting is done
+
+
 ## [2025-06-26.001]
 
 ### ✅ Fixes

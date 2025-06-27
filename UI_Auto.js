@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-26.001
+// @version      2025-06-27.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -65,6 +65,8 @@ game.auto.setting = {
 	"attackChief": 'on',
 	
 	"CharacterSelected": false,
+	
+	"Craft_autoSell": false,
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -89,6 +91,7 @@ game.auto.buildInterface = function(){
 				+ '<div class="ui-tab">'
 					+ '<div class="ui-tab-option active" data-tab-target="#AUTO_UI_TAB1">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.auto') + '</div>'
 					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB2">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.settings') + '</div>'
+					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB3">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.other') + '</div>'
 					+ '<div class="ui-tab-option" data-tab-target="#AUTO_UI_TAB4">' + LC_TEXT(game.lang, 'UI.windows.auto.tab.monsters') + '</div>'
 				+ '</div>'
 				+ '<div class="ui-tab-line"></div>'
@@ -221,6 +224,13 @@ game.auto.buildInterface = function(){
 				+ '</div>'
 				// TAB 3
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB3" style="display: none;">'
+					+ '<div class="tab-other-line">'
+						+ '<input onchange="game.auto.setSetting(\'Craft_autoSell\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('Craft_autoSell', 'on') === 'on')?' checked':'') + ' />'
+						+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.craft.autoSell') + '</span>'
+					+'</div>'
+				+'</div>'
+				// TAB 4
+				+ '<div class="ui-tab-content" id="AUTO_UI_TAB4" style="display: none;">'
 					
 				+'</div>'
 			+'</div>'
@@ -252,7 +262,10 @@ game.auto.buildInterface = function(){
 		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
 		
-		//Test debug missing icon
+		//Overwrite some of the current game's stylesheets
+		+ '#crafting-number {width: 100px !important;}'
+		
+		//Debug missing icon
 		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-HEALTH_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4001.png) !important;}'
 		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-MANA_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4002.png) !important;}'
 		
@@ -324,7 +337,8 @@ game.auto.refreshUI_Lang = function(){
 	$("#AUTO_UI_MAIN .ui-title").html(LC_TEXT(game.lang, "UI.windows.auto.title"));
 	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB1']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.auto'));
 	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB2']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.settings'));
-	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB3']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.monsters'));
+	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB3']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.other'));
+	$("#AUTO_UI_MAIN [data-tab-target='#AUTO_UI_TAB4']").html(LC_TEXT(game.lang, 'UI.windows.auto.tab.monsters'));
 	
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.' + ((game.auto.current.active === true)?'stop':'start')));
 	
@@ -1108,6 +1122,18 @@ game.auto.on_replaced = {};
 
 game.auto.events = {};
 game.auto.events.list = {};
+game.auto.events.replace = function(sEvent){
+	if(!game.on.hasOwnProperty(sEvent)){
+		return false;
+	}
+	game.auto.on_replaced[sEvent] = game.on[sEvent];
+	game.on[sEvent] = function(...args){
+		game.auto.triggerEvent("onBefore_" + sEvent,args);
+		game.auto.on_replaced[sEvent](...args);
+		game.auto.triggerEvent("onAfter_" + sEvent,args);
+	}
+	return true;
+}
 
 game.auto.triggerEvent = function(t, a){
 	if(!game.auto.events.list.hasOwnProperty(t)){
@@ -1192,6 +1218,28 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 	}
 });
 
+//Craft auto sell
+game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
+	if(!game.craft.isCrafting || game.player.bag.getFreeSpace() < 3){
+		game.bag.sellCommonGear();
+		//Crafting is done or bag is almost full, sell everything
+		// if(!game.craft.recipeSelected || game.craft.recipeSelected.isUpgrade){
+			// return;
+		// }
+		// let iid = game.craft.recipeSelected.result.iid;
+		// if(!iid){
+			// return;
+		// }
+		// let nBagSize = game.player.bag.getSize();
+		// for(let i = 0; i < nBagSize; i++){
+			// let oItem = game.player.bag.content[i];
+			// if(!oItem){
+				// continue;
+			// }
+		// }
+	}
+});
+
 
 $(document).ready(() => {
 	
@@ -1203,6 +1251,7 @@ $(document).ready(() => {
 		locale["UI.windows.auto.title"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
 		locale["UI.windows.auto.tab.auto"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
 		locale["UI.windows.auto.tab.settings"] = {"en": "Settings", "fr": "Paramètres"};
+		locale["UI.windows.auto.tab.other"] = {"en": "Other", "fr": "Autre"};
 		locale["UI.windows.auto.tab.monsters"] = {"en": "Monsters", "fr": "Monstres"};
 		
 		locale["UI.windows.auto.btn.start"] = {"en": "Start", "fr": "Démarer"};
@@ -1220,6 +1269,8 @@ $(document).ready(() => {
 		
 		locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
 		locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
+		
+		locale["UI.windows.auto.setting.craft.autoSell"] = {"en": "Craft: Auto sell all common gear when almost full", "fr": "Artisanat : Vente automatique de tout le matériel commun lorsque le sac est presque plein"};
 		
 		game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
 			if(!game.player){return;}
@@ -1247,6 +1298,8 @@ $(document).ready(() => {
 			game.auto.on_replaced.damage(...args);
 			game.auto.triggerEvent("onAfterDamage",args);
 		}
+		
+		game.auto.events.replace("craft_craftingDone");
 	})();
 	
 });
