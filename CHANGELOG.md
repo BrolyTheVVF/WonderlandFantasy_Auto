@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-28.001]
+
+### ➕ Added
+- Added the possibility to load additional scrip files to keep better code, but also give more options like adding path finding
+- Added some more css debuging like readding starts on upgraded gears
+
+
 ## [2025-06-27.001]
 
 ### ➕ Added

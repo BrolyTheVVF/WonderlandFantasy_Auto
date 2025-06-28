@@ -1,0 +1,1 @@
+game.path_finding = {};

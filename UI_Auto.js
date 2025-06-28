@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-27.001
+// @version      2025-06-28.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -19,7 +19,11 @@ if(!game || (!game.player && (!game.scene || !game.scene.login || !game.scene.lo
 }
 
 //HAVE TO FIND ANOTHER DOMAIN CAUSE THIS ONE CANNOT BE USED AS A CDN, IT'S AGAINST THE ToS OF GITHUB
-game.GH_SOURCE_PATH = "https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/";
+// game.EXT_SOURCE_PATH = "https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/";
+game.EXT_SOURCE_PATH = "https://wf-bot.menillia.fr/main/";
+if(game.IS_PTR){
+	game.EXT_SOURCE_PATH = "https://wf-bot.menillia.fr/dev/";
+}
 
 game.loadExternalScript = function(url) {
     return new Promise((resolve, reject) => {
@@ -264,10 +268,6 @@ game.auto.buildInterface = function(){
 		
 		//Overwrite some of the current game's stylesheets
 		+ '#crafting-number {width: 100px !important;}'
-		
-		//Debug missing icon
-		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-HEALTH_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4001.png) !important;}'
-		+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-MANA_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4002.png) !important;}'
 		
 		+ '</style>'
 	));
@@ -1244,8 +1244,13 @@ game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targe
 $(document).ready(() => {
 	
 	(async () => {
-		// await game.loadExternalScript(game.GH_SOURCE_PATH + 'hello.js');
-		// await loadExternalScript('https://autredomaine.net/libs/utils.js');
+		try{
+			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'hello.js');
+			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'UI_Debug_Stylesheet.js');
+			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'SYS_PathFinding.js');
+		}catch(e){
+			console.log(e);
+		}
 
 		game.UI.list.push(game.auto);
 		locale["UI.windows.auto.title"] = {"en": "Auto-pilot", "fr": "Pilote automatique"};
