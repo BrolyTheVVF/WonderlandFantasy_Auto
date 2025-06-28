@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-28.002]
+
+### 💾 Improvements
+- Reworked the whole skill casting process to locally force colldown and not wait server response, preventing the client to spam skill casting request
+
+
 ## [2025-06-28.001]
 
 ### ➕ Added

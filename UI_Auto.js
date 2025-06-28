@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-28.001
+// @version      2025-06-28.002
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -34,6 +34,32 @@ game.loadExternalScript = function(url) {
         s.onerror = reject;
         document.head.appendChild(s);
     });
+};
+game.loadExternalJson = function(url) {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		
+		xhr.open('GET', url, true);
+
+		xhr.onreadystatechange = () => {
+			if (xhr.readyState === 4) { // DONE
+				if (xhr.status === 200) {
+					try {
+						const data = JSON.parse(xhr.responseText);
+						resolve(data);
+					} catch (err) {
+						reject(`Erreur de parsing JSON: ${err}`);
+					}
+				} else {
+					reject(`Erreur HTTP: ${xhr.status}`);
+				}
+			}
+		};
+
+		xhr.onerror = () => reject("Erreur de réseau");
+
+		xhr.send();
+	});
 };
 
 game.auto = {};
@@ -711,6 +737,7 @@ game.auto.onTickEvent.combat = function(){
 	let oSkillBase = game.player.skills[sSkillBase];
 	if(oSkillBase && oSkillBase.isReady(game.player)){
 		game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
+		oSkillBase.lastUse = Date.now() + 20;//20 ms for the minimum network delay, hope the skill doesn't fail Kappa
 		game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
@@ -743,6 +770,9 @@ game.auto.onTickEvent.combat = function(){
 			}else{
 				game.player.askCastSkill(SkillID);
 			}
+			oSkill.lastUse = Date.now() + 20;//20 ms for the minimum network delay, hope the skill doesn't fail Kappa
+			game.player.GCD.skill = Date.now() + entity.CONST.GCD;
+			
 			if(game.IS_PTR){console.log("Auto -> Combat - using skill [" + SkillID + "]");}
 			//We move the skill back to the end so that his priority is last
 			game.auto.current.Combat_skillRotation.splice(i, 1);
@@ -808,7 +838,8 @@ game.auto.setState = function(sState){
 			if(game.player.isWalking){
 				game.setTarget(game.player.x, game.player.y);
 			}
-			game.player.inAutoAttack = true;
+			//Let the rotation handle the auto attack
+			game.player.inAutoAttack = false;
 			game.auto.Combat_skillBuildRotation();
 		}else{
 			game.player.inAutoAttack = false;
@@ -1305,6 +1336,7 @@ $(document).ready(() => {
 		}
 		
 		game.auto.events.replace("craft_craftingDone");
+		game.auto.events.replace("playerChangeMap");
 	})();
 	
 });
