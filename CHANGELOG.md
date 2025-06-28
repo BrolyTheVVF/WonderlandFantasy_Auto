@@ -7,9 +7,7 @@ All notable changes to this project will be documented in this file.
 - Path finding between maps
 - Add auto quest
 - LoS check to better check what next target to choose (and not just raw distance to the player)
-- When in sitting mode and receiving damages, go back to combat mode
 - In the setting, be able to toggle base attacks
-- Add some kind of delay for not in range items before picking them up
 
 ---
 
