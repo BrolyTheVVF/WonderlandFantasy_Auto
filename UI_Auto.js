@@ -1251,7 +1251,7 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 
 //Craft auto sell
 game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
-	if(!game.craft.isCrafting || game.player.bag.getFreeSpace() < 3){
+	if(!game.craft.isCrafting || game.player.bag.getFreeSpace() < 5){
 		game.bag.sellCommonGear();
 		//Crafting is done or bag is almost full, sell everything
 		// if(!game.craft.recipeSelected || game.craft.recipeSelected.isUpgrade){
