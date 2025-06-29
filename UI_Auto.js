@@ -109,7 +109,7 @@ game.auto.regen = {
 };
 
 game.auto.buildInterface = function(){
-	game.auto.triggerEvent("src_onBefore_buildInterface");
+	game.auto.triggerEvent("src_onBefore_buildInterface", []);
 	
 	for(let k in game.auto.setting){
 		game.auto.setting[k] = game.cookie.get("AUTO-SETTING-" + k, game.auto.setting[k]);
@@ -331,7 +331,7 @@ game.auto.buildInterface = function(){
 	});
 	
 	game.auto.__isBuild = true;
-	game.auto.triggerEvent("src_onAfter_buildInterface");
+	game.auto.triggerEvent("src_onAfter_buildInterface", []);
 };
 
 game.auto.setSetting = function(k, v){
