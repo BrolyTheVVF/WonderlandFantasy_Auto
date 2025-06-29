@@ -548,7 +548,7 @@ game.auto.onTick = function(){
 		return;
 	}
 	
-	if(game.socket.readyState !== game.socket.OPEN && game.auto.current.active === true){
+	if(game.socket && game.socket.readyState !== game.socket.OPEN && game.auto.current.active === true){
 		document.location = document.location.href;
 	}
 	
@@ -1251,6 +1251,7 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 
 //Craft auto sell
 game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
+	if(game.IS_PTR){console.log("game.player.bag.getFreeSpace()", game.player.bag.getFreeSpace());}
 	if(!game.craft.isCrafting || game.player.bag.getFreeSpace() < 5){
 		game.bag.sellCommonGear();
 		//Crafting is done or bag is almost full, sell everything
