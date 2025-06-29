@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-29.002
+// @version      2025-06-29.003
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -108,6 +108,7 @@ game.auto.regen = {
 };
 
 game.auto.buildInterface = function(){
+	game.auto.triggerEvent("src_onBefore_buildInterface");
 	
 	for(let k in game.auto.setting){
 		game.auto.setting[k] = game.cookie.get("AUTO-SETTING-" + k, game.auto.setting[k]);
@@ -274,29 +275,32 @@ game.auto.buildInterface = function(){
 	//Adding the minimap icon on top of the minimap, since the minimap doesn't work anyway LUL
 	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="Auto" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
 	
-	$("#WF_STYLE").append($(''
-		+ '<style id="WF_STYLE_AUTO_MAIN">'
-		
-		+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
-		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;max-width: 100%;}'
-		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
-		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
-		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
-		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
-		
-		+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: auto auto 1fr; grid-gap: 5px;; height: 100%;align-items: center;text-align: center;}'
-		+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
-		+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
-		+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
-		
-		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
-		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
-		
-		//Overwrite some of the current game's stylesheets
-		+ '#crafting-number {width: 100px !important;}'
-		
-		+ '</style>'
-	));
+	setTimeout(() => {
+		$("#WF_STYLE").append($(''
+			+ '<style id="WF_STYLE_AUTO_MAIN">'
+			
+			+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
+			+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;max-width: 100%;}'
+			+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
+			+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
+			+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
+			+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
+			
+			+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: auto auto 1fr; grid-gap: 5px;; height: 100%;align-items: center;text-align: center;}'
+			+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
+			+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
+			+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
+			
+			+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
+			+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
+			
+			//Overwrite some of the current game's stylesheets
+			+ '#crafting-number {width: 100px !important;}'
+			
+			+ '</style>'
+		));
+	}, 10_000);
+	
 	
 	// game.mouse.onMouseMove();
 	// game.mouse.onMouseDown();
@@ -326,6 +330,7 @@ game.auto.buildInterface = function(){
 	});
 	
 	game.auto.__isBuild = true;
+	game.auto.triggerEvent("src_onAfter_buildInterface");
 };
 
 game.auto.setSetting = function(k, v){
@@ -600,7 +605,7 @@ game.auto.onCharSelScreen = function(){
 	if(!game.scene.login.scene.visible){
 		return;
 	}
-	if(game.login && game.login.selected && game.login.selected.pending){
+	if(!game.login || !game.login.selected || game.login.selected.pending){
 		return;
 	}
 	for(let i = 1; i <= 3; i++){
@@ -613,7 +618,6 @@ game.auto.onCharSelScreen = function(){
 		game.auto.start();
 		return;
 	}
-	// game.login.selected.uid = game.auto.current.CharacterSelected;
 };
 game.auto.checkRules = function(){
 	let nHP = game.player.health.value / game.player.health.max * 100;

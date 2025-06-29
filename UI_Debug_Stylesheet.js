@@ -1,4 +1,5 @@
-$("#WF_STYLE").append($(''
+game.auto.registerEvent("src_onAfter_buildInterface", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
+	$("#WF_STYLE").append($(''
 		+ '<style id="WF_STYLE_AUTO_DEBUG_STYLESHEET">'
 			//Stars
 			+ '.ui-item-icon-star1{background-image: url(\'' + game.EXT_SOURCE_PATH + 'icon/misc/star1.png\');}'
@@ -19,3 +20,4 @@ $("#WF_STYLE").append($(''
 			+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-MANA_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4002.png) !important;}'
 		+ '</style>'
 	));
+});

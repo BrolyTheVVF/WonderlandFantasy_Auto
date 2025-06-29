@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-29.003]
+
+### ✅ Fixes
+- Try and prevent some CSS injection to break game's UI in some cases
+
+
 ## [2025-06-29.002]
 
 ### ✅ Fixes
