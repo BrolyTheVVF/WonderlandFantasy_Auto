@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-28.002
+// @version      2025-06-29.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -738,7 +738,7 @@ game.auto.onTickEvent.combat = function(){
 	if(oSkillBase && oSkillBase.isReady(game.player)){
 		game.player.askCastSkillOn(sSkillBase, game.player.lockOn);
 		oSkillBase.lastUse = Date.now() + 20;//20 ms for the minimum network delay, hope the skill doesn't fail Kappa
-		game.auto.current.tickDelay = Date.now() + 100;
+		// game.auto.current.tickDelay = Date.now() + 100;
 	}
 	
 	for(let i = 0; i < game.auto.current.Combat_skillRotation.length; i++){
@@ -770,8 +770,8 @@ game.auto.onTickEvent.combat = function(){
 			}else{
 				game.player.askCastSkill(SkillID);
 			}
-			oSkill.lastUse = Date.now() + 20;//20 ms for the minimum network delay, hope the skill doesn't fail Kappa
-			game.player.GCD.skill = Date.now() + entity.CONST.GCD;
+			// oSkill.lastUse = Date.now() + 20;//20 ms for the minimum network delay, hope the skill doesn't fail Kappa
+			// game.player.GCD.skill = Date.now() + entity.CONST.GCD;
 			
 			if(game.IS_PTR){console.log("Auto -> Combat - using skill [" + SkillID + "]");}
 			//We move the skill back to the end so that his priority is last

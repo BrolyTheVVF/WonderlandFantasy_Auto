@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-29.001]
+
+### 💾 Improvements
+- Rolled back the skill change
+
+
 ## [2025-06-28.002]
 
 ### 💾 Improvements
