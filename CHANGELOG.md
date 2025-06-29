@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-06-29.002]
+
+### ✅ Fixes
+- Some event where not properly overwritten when the bot loaded in some cases
+
+
 ## [2025-06-29.001]
 
 ### 💾 Improvements

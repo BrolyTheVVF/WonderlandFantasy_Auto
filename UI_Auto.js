@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-29.001
+// @version      2025-06-29.002
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
