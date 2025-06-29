@@ -600,7 +600,7 @@ game.auto.onCharSelScreen = function(){
 	if(!game.scene.login.scene.visible){
 		return;
 	}
-	if(game.login.selected.pending){
+	if(game.login && game.login.selected && game.login.selected.pending){
 		return;
 	}
 	for(let i = 1; i <= 3; i++){
