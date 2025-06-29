@@ -1,5 +1,5 @@
 game.auto.registerEvent("src_onAfter_buildInterface", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
-	$("#WF_STYLE").append($(''
+	$("#AUTO_STYLE").append($(''
 		+ '<style id="WF_STYLE_AUTO_DEBUG_STYLESHEET">'
 			//Stars
 			+ '.ui-item-icon-star1{background-image: url(\'' + game.EXT_SOURCE_PATH + 'icon/misc/star1.png\');}'

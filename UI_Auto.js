@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-29.004
+// @version      2025-06-29.005
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 
 game.auto = {};
 game.auto = {};
-game.auto.version = "2025-06-29.004";
+game.auto.version = "2025-06-29.005";
 game.auto.HTML = false;
 game.auto.current = {
 	"map": false,
@@ -276,31 +276,30 @@ game.auto.buildInterface = function(){
 	//Adding the minimap icon on top of the minimap, since the minimap doesn't work anyway LUL
 	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="Auto" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
 	
-	setTimeout(() => {
-		$("#WF_STYLE").append($(''
-			+ '<style id="WF_STYLE_AUTO_MAIN">'
-			
-			+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
-			+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;max-width: 100%;}'
-			+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
-			+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
-			+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
-			+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
-			
-			+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: auto auto 1fr; grid-gap: 5px;; height: 100%;align-items: center;text-align: center;}'
-			+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
-			+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
-			+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
-			
-			+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
-			+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
-			
-			//Overwrite some of the current game's stylesheets
-			+ '#crafting-number {width: 100px !important;}'
-			
-			+ '</style>'
-		));
-	}, 10_000);
+	$("body").append($('<div id="AUTO_STYLE"></div>'));
+	$("#AUTO_STYLE").append($(''
+		+ '<style id="WF_STYLE_AUTO_MAIN">'
+		
+		+ '#AUTO_UI_TAB1{padding-top: 10px;display: grid;grid-template-rows: auto 1fr; height: 100%;align-items: center;text-align: center;}'
+		+ '#AUTO_UI_TAB1 .auto-pics{display: flex;overflow-x: auto;margin: auto;max-width: 100%;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card {border: 1px solid rgba(181, 67, 0, 0.8);margin: 10px;padding:10px;text-align: center;min-width: 90px;display: grid;grid-template-rows: 1fr auto auto;background-color: rgba(255, 255, 255, 0.6);}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame {align-content: center;}'
+		+ '#AUTO_UI_TAB1 .auto-npc-card .auto-npc-card-frame .auto-npc-card-frame-fg {margin: auto;}'
+		+ '#AUTO_UI_TAB1 .auto-fs-label {margin-left: 5px;}'
+		
+		+ '#AUTO_UI_TAB2{padding-top: 10px;display: grid;grid-template-rows: auto auto 1fr; grid-gap: 5px;; height: 100%;align-items: center;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-p2-head {display: grid;grid-template-rows: 1fr 1fr;height: 100%;align-items: center;}'
+		+ '#AUTO_UI_TAB2 .auto-rules-p2 {display: grid;grid-template-columns: 80px 1fr 1fr;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-rules-p2 select {width: 80%;}'
+		
+		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
+		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
+		
+		//Overwrite some of the current game's stylesheets
+		+ '#crafting-number {width: 100px !important;}'
+		
+		+ '</style>'
+	));
 	
 	
 	// game.mouse.onMouseMove();

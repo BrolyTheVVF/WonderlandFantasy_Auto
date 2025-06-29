@@ -8,8 +8,21 @@ All notable changes to this project will be documented in this file.
 - Add auto quest
 - LoS check to better check what next target to choose (and not just raw distance to the player)
 - In the setting, be able to toggle base attacks
+- Add the little auto floating on top of the head (local only)
 
 ---
+
+## [2025-06-29.005]
+
+### ✅ Fixes
+- Yet another try to fix UI breaking in some browser (take 2155465465416)
+
+
+## [2025-06-29.004]
+
+### ✅ Fixes
+- Try and prevent some JS external file to be cached between version updates
+
 
 ## [2025-06-29.003]
 
