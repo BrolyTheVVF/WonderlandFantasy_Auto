@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-03.001
+// @version      2025-07-03.003
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,8 +64,12 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto = {};
-game.auto.version = "2025-07-03.001";
+game.auto.version = "2025-07-03.003";
+game.auto.GCD = {
+	"item_pickup": 0,
+	"attack_normal": 0,
+	"attack_base": 0,
+};
 game.auto.HTML = false;
 game.auto.current = {
 	"map": false,
@@ -966,6 +970,11 @@ game.auto.Combat_skillBuildRotation = function(){
 	
 };
 game.auto.pickupItems = function(){
+	if(game.auto.GCD.item_pickup > Date.now()){
+		return;
+	}
+	game.auto.GCD.item_pickup = Date.now() + 1_000;
+	
 	let l = [];
 	for(let k in game.groundItems){
 		let oDrop = game.groundItems[k];

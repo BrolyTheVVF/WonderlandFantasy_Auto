@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-03.002]
+
+### 💾 Improvements
+- Added a specific cooldown to item pickup so the bot doesn't spam the picking up every 50ms
+
+
 ## [2025-07-03.001]
 
 ### 💾 Improvements

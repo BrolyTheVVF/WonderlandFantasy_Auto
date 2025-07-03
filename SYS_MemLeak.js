@@ -29,14 +29,24 @@ Particle.prototype.destroy = function(...args){
         this.sound = false;
     }
     
-    for(let i = this.C2.length; i >= 0; i--){
-        if(!this.C2[i]){
-            continue;
-        }
-        this.C2[i].destroy();
-        this.C2.splice(i, 1);
-    }
+	if(this && this.C2){
+		for(let i = this.C2.length; i >= 0; i--){
+			if(!this.C2[i]){
+				continue;
+			}
+			this.C2[i].destroy();
+			this.C2.splice(i, 1);
+		}
+	}
     delete Particle.list[this.__id];
     ParticleParent.destroy.apply(this, args);
     //super.destroy();
 }
+
+
+//Fix some error flood
+delete buff.__proto.POISON_ARROW.particles;
+delete buff.__proto.ABYSS_25_POISON.particles;
+delete buff.__proto.WB_KADIR_BASE_POISON.particles;
+delete buff.__proto.WB_KADIR_2_POISON.particles;
+delete buff.__proto.EVENT_MASQUERADE_POISON.particles;
