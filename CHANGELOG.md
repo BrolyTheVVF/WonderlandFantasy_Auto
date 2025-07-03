@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2025-06-29.005]
+## [2025-07-03.001]
 
 ### 💾 Improvements
 - Fix a game's memory leak with sprite clips (SYS_MemLeak.js)
