@@ -30,13 +30,14 @@ game.path_finding.loadMapCollision = async function(sMap){
 	game.path_finding.current.isLoaded = false;
 	game.path_finding.current.collisions = false;
 	let sPath = game.EXT_SOURCE_PATH + "maps/collisions/" + sMap + ".json";
-	game.loadExternalJson(sPath) .then(data => {
+	game.loadExternalJson(sPath).then(data => {
 		console.log("Contenu JSON chargé :", data);
 		game.path_finding.current.collisions = data;
 		game.path_finding.current.isLoading = false;
 		game.path_finding.current.isLoaded = true;
 	})
 	.catch(error => {
+		console.error("Echech du chargement du JSON :", error);
 		game.path_finding.current.isLoading = false;
 		game.path_finding.current.isLoaded = true;
 	});
