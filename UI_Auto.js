@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-06-29.006
+// @version      2025-07-03.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -65,7 +65,7 @@ game.loadExternalJson = function(url) {
 
 game.auto = {};
 game.auto = {};
-game.auto.version = "2025-06-29.006";
+game.auto.version = "2025-07-03.001";
 game.auto.HTML = false;
 game.auto.current = {
 	"map": false,
@@ -1284,6 +1284,7 @@ $(document).ready(() => {
 		try{
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'hello.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'UI_Debug_Stylesheet.js?v=' + game.auto.version);
+			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'SYS_MemLeak.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'SYS_PathFinding.js?v=' + game.auto.version);
 		}catch(e){
 			console.log(e);

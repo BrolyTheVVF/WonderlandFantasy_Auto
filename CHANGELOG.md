@@ -6,11 +6,17 @@ All notable changes to this project will be documented in this file.
 - Path finding inside maps
 - Path finding between maps
 - Add auto quest
-- LoS check to better check what next target to choose (and not just raw distance to the player)
+- Better targetting choice: Add LoS check, prioritize ennemies that are already attacking you, even more if they attack from distance and are chief
 - In the setting, be able to toggle base attacks
 - Add the little auto floating on top of the head (local only)
 
 ---
+
+## [2025-06-29.005]
+
+### 💾 Improvements
+- Fix a game's memory leak with sprite clips (SYS_MemLeak.js)
+
 
 ## [2025-06-29.005]
 
