@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-03.003
+// @version      2025-07-05.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-03.003";
+game.auto.version = "2025-07-05.001";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
@@ -739,7 +739,15 @@ game.auto.onTickEvent.combat = function(){
 	}
 	
 	if(game.player.isCasting){
-		return;
+		if(game.player.castStart + game.player.castTime + (nTimeSecond * 10) > Date.now()){
+			//If the casting time (+ 10 second delay to be sure) is not done, then do nothing
+			return;
+		}else{
+			//If the cast is supposed to be over since at least 10 sec, then it glitched out
+			game.player.castStart = 0;
+			game.player.castTime = 0;
+			game.player.isCasting = false;
+		}
 	}
 	
 	let sSkillBase = game.player.classe + "_base";

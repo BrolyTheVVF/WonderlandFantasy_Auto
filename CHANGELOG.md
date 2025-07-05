@@ -15,6 +15,13 @@ All notable changes to this project will be documented in this file.
 ## [2025-07-03.002]
 
 ### 💾 Improvements
+- Added a fix when player is stuck with an infinite cast bar and the bot was stuck doing nothing, now cancel the glitched cast after 10 seconds
+- Added a new fix to try and reduce memory leaks
+
+
+## [2025-07-03.002]
+
+### 💾 Improvements
 - Added a specific cooldown to item pickup so the bot doesn't spam the picking up every 50ms
 
 
