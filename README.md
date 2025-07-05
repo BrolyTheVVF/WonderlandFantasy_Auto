@@ -25,7 +25,7 @@ You must enable develloper mode in you browser in the addon menu
 2. Open the **Dashboard** (click on the icon, then on *Dashboard*).
 3. In the Tampermonkey dashboard, go to the **Utilities** tab.
 4. Find the **Import from URL** field.
-5. Paste this link into the input box: https://raw.githubusercontent.com/BrolyTheVVF/WonderlandFantasy_Auto/refs/heads/main/UI_Auto.js
+5. Paste this link into the input box: https://wf-bot.menillia.fr/main/UI_Auto.js
 6. Click the **Install** button.
 
 ---
