@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2025-07-03.002]
+## [2025-07-05.001]
 
 ### 💾 Improvements
 - Added a fix when player is stuck with an infinite cast bar and the bot was stuck doing nothing, now cancel the glitched cast after 10 seconds
