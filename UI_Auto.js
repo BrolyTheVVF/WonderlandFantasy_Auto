@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-05.003
+// @version      2025-07-06.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-05.003";
+game.auto.version = "2025-07-06.001";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
@@ -1276,7 +1276,9 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 
 //Craft auto sell
 game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targetUid, oDamage, fromUid, newHealthPoint){
-	if(game.IS_PTR){console.log("game.player.bag.getFreeSpace()", game.player.bag.getFreeSpace());}
+	if(game.auto.setting.Craft_autoSell !== 'on'){
+		return;
+	}
 	if(!game.craft.isCrafting || game.player.bag.getFreeSpace() < 5){
 		game.bag.sellCommonGear();
 		//Crafting is done or bag is almost full, sell everything

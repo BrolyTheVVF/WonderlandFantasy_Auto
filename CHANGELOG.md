@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-06.001]
+
+### ✅ Fixes
+- Crafting's auto sell now properly check the config and not just allways auto sell
+
+
 ## [2025-07-05.001]
 
 ### 💾 Improvements
