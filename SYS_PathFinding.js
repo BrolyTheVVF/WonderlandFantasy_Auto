@@ -172,6 +172,9 @@ game.path_finding.init_worker = function(){
 game.path_finding.find_path = function(oFrom, oTo){
 	return new Promise(async (resolve, reject) => {
 		game.path_finding.current.worker.isSearching = true;
+		console.log('Searching path :');
+		console.log(JSON.stringify(oFrom));
+		console.log(JSON.stringify(oTo));
 		
 		if(game.path_finding.current.worker.map !== game.player.map){
 			await game.path_finding.init_worker();
@@ -208,7 +211,7 @@ game.path_finding.worker.onmessage = function (e) {
 		game.path_finding.current.worker.isLoaded = true;
 		game.path_finding.onInitDone();
 	} else if (type === 'result') {
-		console.log('Chemin trouvé :');
+		console.log('Path found :');
 		console.log(JSON.stringify(path));
 		
 		if(game.path_finding.onWorkerDone.hasOwnProperty(CALL_ID)){
