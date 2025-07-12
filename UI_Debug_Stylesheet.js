@@ -18,6 +18,9 @@ game.auto.registerEvent("src_onAfter_buildInterface", "AutoSell", function(targe
 			//Potions
 			+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-HEALTH_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4001.png) !important;}'
 			+ '#CHARACTERINFO_UI_MAIN .buff-slot-icon.buff-icon-MANA_REGEN{background-image: url(https://wonderland-fantasy.com/assets/original/icon/4002.png) !important;}'
+			
+			//Dps Meter icon
+			+ '#MINIMAP_UI_MAIN .minimap-radar-btn-auto{background-image: url(\'https://menillia.fr/assets/original/ui/button/radar_pds_meter.png\') !important;background-size: 29px 28px;}'
 		+ '</style>'
 	));
 });

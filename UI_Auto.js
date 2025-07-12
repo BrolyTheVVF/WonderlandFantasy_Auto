@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-06.001
+// @version      2025-07-12.011
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-06.001";
+game.auto.version = "2025-07-12.011";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
@@ -79,6 +79,9 @@ game.auto.current = {
 	"tickDelay": 0,
 	
 	"Combat_skillRotation": [],
+	
+	"Reaching_path": [],
+	"Reaching_isStuck": true,
 	
 	//Change the way ignored NPC works so they only get ingnored for like a minute
 	"ignoredNPC": [],
@@ -265,6 +268,10 @@ game.auto.buildInterface = function(){
 						+ '<input onchange="game.auto.setSetting(\'Craft_autoSell\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('Craft_autoSell', 'on') === 'on')?' checked':'') + ' />'
 						+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.craft.autoSell') + '</span>'
 					+'</div>'
+					+ '<div class="tab-other-line">'
+						+ '<input onchange="game.path_finding.setEnabled(this.checked);" type="checkbox" ' +  ((game.path_finding.enabled)?' checked':'') + ' />'
+						+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.beta_path_finding') + '</span>'
+					+'</div>'
 				+'</div>'
 				// TAB 4
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB4" style="display: none;">'
@@ -279,7 +286,7 @@ game.auto.buildInterface = function(){
 	$("#UI_MAIN").append(game.auto.HTML);
 	
 	//Adding the minimap icon on top of the minimap, since the minimap doesn't work anyway LUL
-	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="Auto" onclick="game.auto.toggleVisible();" style="position: absolute;top:50px;right: 50px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
+	$(".minimap-radar-btn-auto").parent().append('<div class="minimap-radar-btn-realauto" title="Auto" onclick="game.auto.toggleVisible();" style="position: absolute;top:0px;right: 25px;background-image: url(' + game.assets.baseURL + 'ui/button/10_1.png);width: 29px;height: 28px;"></div>');
 	
 	$("body").append($('<div id="AUTO_STYLE"></div>'));
 	$("#AUTO_STYLE").append($(''
@@ -299,6 +306,8 @@ game.auto.buildInterface = function(){
 		
 		+ '#AUTO_UI_TAB2 .auto-p2-body {display: grid;grid-template-columns: 80px 1fr;text-align: center;}'
 		+ '#AUTO_UI_TAB2 .auto-p2-body .auto-p2h-skill-card {display: inline-block;padding: 3px;margin: 3px;border: 1px solid rgba(181, 67, 0, 0.8);background-color: rgba(255, 255, 255, 0.6);}'
+		
+		+ '#AUTO_UI_TAB3 {padding: 5px;}'
 		
 		//Overwrite some of the current game's stylesheets
 		+ '#crafting-number {width: 100px !important;}'
@@ -816,21 +825,57 @@ game.auto.onTickEvent.reaching = function(){
 		game.auto.setState("combat");
 		return;
 	}
-	if(!game.player.isWalking){
-		if(game.auto.current.previousDistance !== false && game.auto.current.previousDistance < game.utilities.distanceBetween(game.player, game.player.lockOn)){
-			//If you get there, there is a problem, most likelly player is stuck on a wall
-			//That mean you actually are now further away from the NPC while you also stopped walking (and not just the NPC got further away by walking too)
-			
+	if(game.auto.current.Reaching_path && Array.isArray(game.auto.current.Reaching_path) && game.auto.current.Reaching_path.length > 0){
+		if(game.auto.current.Reaching_isStuck){
+			game.auto.current.Reaching_isStuck = false;
 			game.auto.current.ignoredNPC.push(game.player.lockOn.uid);
-			game.auto.current.previousDistance = false;
 			game.player.setLockON(false);
 			game.auto.setState("idle");
 			game.auto.current.tickDelay = Date.now() + 200;
 			return;
+			return;
 		}
-		
-		
-		game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
+		if(!game.player.isWalking){
+			let oNextPath = game.auto.current.Reaching_path[0];
+			game.auto.current.Reaching_path.shift();
+			game.setTarget(oNextPath.x, oNextPath.y);
+		}
+		game.auto.current.tickDelay = Date.now() + 200;
+		return;
+	}
+	if(!game.player.isWalking){
+		if(game.path_finding && game.path_finding.enabled && game.auto.current.Reaching_path !== false){
+			if(game.path_finding.current.worker.isSearching){
+				game.auto.current.tickDelay = Date.now() + 200;
+				return;
+			}
+			game.path_finding.find_path({"x": game.player.x, "y": game.player.y}, {"x": game.player.lockOn.x, "y": game.player.lockOn.y}).then((oPath) => {
+				if(!oPath || !Array.isArray(oPath)){
+					oPath = false;
+				}
+				game.auto.current.Reaching_path = oPath;
+				// game.setTarget(oPath.x, oPath.y);
+			});
+			game.auto.current.tickDelay = Date.now() + 200;
+		}else{
+			// game.path_finding.find_path
+			if(game.auto.current.Reaching_isStuck === true || (game.auto.current.previousDistance !== false && game.auto.current.previousDistance < game.utilities.distanceBetween(game.player, game.player.lockOn))){
+				//If you get there, there is a problem, most likelly player is stuck on a wall
+				//That mean you actually are now further away from the NPC while you also stopped walking (and not just the NPC got further away by walking too)
+				
+				game.auto.current.ignoredNPC.push(game.player.lockOn.uid);
+				game.auto.current.previousDistance = false;
+				game.auto.current.Reaching_isStuck = false;
+				game.player.setLockON(false);
+				game.auto.setState("idle");
+				game.auto.current.tickDelay = Date.now() + 200;
+				return;
+			}
+			
+			
+			game.setTarget(game.player.lockOn.x, game.player.lockOn.y);
+			game.auto.current.Reaching_path = [];
+		}
 		game.auto.current.tickDelay = Date.now() + 100;
 	}else if (game.player.target.yx + game.player.x != game.player.lockOn.x || game.player.target.y + game.player.y != game.player.lockOn.y){
 		//Target is also moving, retargeting the character to get to him
@@ -1238,6 +1283,13 @@ game.auto.registerEvent("onAfterDamage", "main", function(){
 	
 });
 
+game.auto.registerEvent("onAfter_setPosition", "auto.reaching", function(uid, x, y){
+	if(uid !== game.player.uid){
+		return;
+	}
+	game.auto.current.Reaching_isStuck = true;
+});
+
 //Online Time Reward auto gather
 game.auto.registerEvent("onActiveTick", "onlineTimeReward", function(){
 	if(!game.online_time_reward.isActive()){
@@ -1303,6 +1355,7 @@ game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targe
 $(document).ready(() => {
 	
 	(async () => {
+		
 		try{
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'hello.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'UI_Debug_Stylesheet.js?v=' + game.auto.version);
@@ -1336,6 +1389,7 @@ $(document).ready(() => {
 		locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
 		
 		locale["UI.windows.auto.setting.craft.autoSell"] = {"en": "Craft: Auto sell all common gear when almost full", "fr": "Artisanat : Vente automatique de tout le matériel commun lorsque le sac est presque plein"};
+		locale["UI.windows.auto.setting.beta_path_finding"] = {"en": "(Beta) Enable path finding", "fr": "(Beta) Activer le path finding"};
 		
 		game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
 			if(!game.player){return;}
@@ -1366,6 +1420,9 @@ $(document).ready(() => {
 		
 		game.auto.events.replace("craft_craftingDone");
 		game.auto.events.replace("playerChangeMap");
+		//Cannot replace self joined, I locked it PepeSad
+		// game.auto.events.replace("selfJoined");
+		game.auto.events.replace("setPosition");
 	})();
 	
 });
