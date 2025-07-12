@@ -3,7 +3,6 @@
 All notable changes to this project will be documented in this file.
 
 ### 🔮 Upcoming Features / Changes / Fixes
-- Path finding inside maps
 - Path finding between maps
 - Add auto quest
 - Better targetting choice: Add LoS check, prioritize ennemies that are already attacking you, even more if they attack from distance and are chief
@@ -11,6 +10,12 @@ All notable changes to this project will be documented in this file.
 - Add the little auto floating on top of the head (local only)
 
 ---
+
+## [2025-07-12.011]
+
+### ➕ Added
+- Added first beta version of pathfinding inside maps (currently working in HoE and HoE Deep 70 to 90)
+
 
 ## [2025-07-06.001]
 
