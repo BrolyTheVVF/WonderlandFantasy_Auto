@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-15.005]
+
+### 💾 Improvements
+- Auto unlock target upon death
+- Delay between 2 wave of item picking up changed from 1s to 2.5s to be less intense for the server
+
+### ➕ Added
+- Added an option to auto sell telluric items when stack are full and in auto mode
+
+
 ## [2025-07-15.004]
 
 ### ✅ Fixes

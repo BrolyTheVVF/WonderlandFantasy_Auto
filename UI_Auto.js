@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-15.004
+// @version      2025-07-15.005
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,11 +64,12 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-15.004";
+game.auto.version = "2025-07-15.005";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
 	"attack_base": 0,
+	"other.telluric_autosell": 0,
 };
 game.auto.HTML = false;
 game.auto.current = {
@@ -105,7 +106,8 @@ game.auto.setting = {
 	
 	"CharacterSelected": false,
 	
-	"Craft_autoSell": false,
+	"Craft_autoSell": 'off',
+	"Telluric_autoSell": 'on',
 };
 game.auto.slots = {
 	"skills": [false, false, false, false, false, false],
@@ -266,11 +268,15 @@ game.auto.buildInterface = function(){
 				+ '<div class="ui-tab-content" id="AUTO_UI_TAB3" style="display: none;">'
 					+ '<div class="tab-other-line">'
 						+ '<input onchange="game.auto.setSetting(\'Craft_autoSell\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('Craft_autoSell', 'on') === 'on')?' checked':'') + ' />'
-						+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.craft.autoSell') + '</span>'
+						+ '<span class="input-label setting-other-craft_autoSell">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.other.craft_autoSell') + '</span>'
+					+'</div>'
+					+ '<div class="tab-other-line">'
+						+ '<input onchange="game.auto.setSetting(\'Telluric_autoSell\', ((this.checked)?\'on\':\'off\'))" type="checkbox" ' +  ((game.auto.getSetting('Telluric_autoSell', 'on') === 'on')?' checked':'') + ' />'
+						+ '<span class="input-label setting-other-telluric_autoSell">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.other.telluric_autoSell') + '</span>'
 					+'</div>'
 					+ '<div class="tab-other-line">'
 						+ '<input onchange="game.path_finding.setEnabled(this.checked);" type="checkbox" ' +  ((game.path_finding.enabled)?' checked':'') + ' />'
-						+ '<span class="input-label">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.beta_path_finding') + '</span>'
+						+ '<span class="input-label setting-beta_path_finding">' + LC_TEXT(game.lang, 'UI.windows.auto.setting.beta_path_finding') + '</span>'
 					+'</div>'
 				+'</div>'
 				// TAB 4
@@ -420,6 +426,11 @@ game.auto.refreshUI_Lang = function(){
 	}
 	
 	$("#AUTO_UI_TAB2 .auto-p2b-left").html(LC_TEXT(game.lang, 'UI.windows.skills.title'));
+	
+	
+	$("#AUTO_UI_TAB3 .setting-other-craft_autoSell").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.other.craft_autoSell'));
+	$("#AUTO_UI_TAB3 .setting-other-telluric_autoSell").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.other.telluric_autoSell'));
+	$("#AUTO_UI_TAB3 .setting-beta_path_finding").html(LC_TEXT(game.lang, 'UI.windows.auto.setting.beta_path_finding'));
 };
 
 game.auto.refreshUI_Npcs = function(){
@@ -585,6 +596,10 @@ game.auto.onTick = function(){
 	}
 	
 	if(game.player.isDead){
+		if(game.player.lockOn){
+			game.player.setLockON(false);
+			game.auto.current.tickDelay = Date.now() + 100;
+		}
 		requestAnimationFrame(game.auto.onTick);
 		return;
 	}
@@ -727,7 +742,7 @@ game.auto.onTickEvent.combat = function(){
 	if(!game.player.lockOn || game.player.lockOn.isDead || game.player.lockOn.uid === game.player.uid){
 		game.auto.current.ignoredNPC = [];
 		game.auto.current.previousDistance = false;
-		game.player.setLockON(false)
+		game.player.setLockON(false);
 		game.auto.setState("idle");
 		game.auto.current.tickDelay = Date.now() + 100;
 		return;
@@ -735,7 +750,7 @@ game.auto.onTickEvent.combat = function(){
 	if(game.player.lockOn && (!game.player.canDamage(game.player.lockOn) || game.player.lockOn.isPC)){
 		game.auto.current.ignoredNPC = [];
 		game.auto.current.previousDistance = false;
-		game.player.setLockON(false)
+		game.player.setLockON(false);
 		game.auto.setState("idle");
 		game.auto.current.tickDelay = Date.now() + 100;
 		return;
@@ -1035,7 +1050,7 @@ game.auto.pickupItems = function(){
 	if(game.auto.GCD.item_pickup > Date.now()){
 		return;
 	}
-	game.auto.GCD.item_pickup = Date.now() + 1_000;
+	game.auto.GCD.item_pickup = Date.now() + 2_500;
 	
 	let l = [];
 	for(let k in game.groundItems){
@@ -1357,6 +1372,13 @@ game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targe
 	}
 });
 
+game.auto.registerEvent("onAfter_itemSynch", "Telluric_AutoSell", function(slotType, slotPosition, oItem){
+	game.auto.other.Telluric_AutoSell();
+});
+game.auto.registerEvent("onAfter_itemSynchCount", "Telluric_AutoSell", function(slotType, slotPosition, nCount){
+	game.auto.other.Telluric_AutoSell();
+});
+
 //Force cooldown on casting skills
 game.auto.registerEvent("onAfter_selfJoined", "Auto_CastingDebug", async function(){
 	for(let k in game.player.skills){
@@ -1370,6 +1392,54 @@ game.auto.registerEvent("onAfter_selfJoined", "Auto_CastingDebug", async functio
 		oSkill.lastUse = Date.now();
 	}
 });
+
+game.auto.other = {};
+game.auto.other.sellItem = function(UID){
+	game._emit("sellItem",[UID])
+};
+game.auto.other.Telluric_list = ["20010","20014","20015","20016","20017","20018","20019","20020","20023","20024"];
+game.auto.other.Telluric_AutoSell = function(){
+	if(game.auto.current.active !== true){
+		return;
+	}
+	if(game.auto.setting.Telluric_autoSell !== 'on'){
+		return;
+	}
+	
+	if(game.auto.GCD["other.telluric_autosell"] > Date.now()){
+		//Already sold more than 30 sec ago, wait for the server to properly accept the sale
+		return;
+	}
+	
+	let bHaveSold = false;
+	let nBagSize = game.player.bag.getSize();
+	for(let i = 0; i < game.auto.other.Telluric_list.length; i++){
+		let IID = game.auto.other.Telluric_list[i];
+		let nCount = game.player.getItemQty(IID);
+		let oProto = item.__proto[IID];
+		if(!nCount || !oProto){
+			continue;
+		}
+		if(nCount >= oProto.maxCarried){
+			bHaveSold = true;
+			for(let j = 0; j < nBagSize; j++){
+				let oItem = game.player.bag.content[j];
+				if(!oItem){
+					continue;
+				}
+				if(oItem.iid !== IID){
+					continue;
+				}
+				game.auto.other.sellItem(oItem.uid);
+			}
+		}
+	}
+	if(bHaveSold){
+		game.auto.GCD["other.telluric_autosell"] = Date.now() + 30_000;
+	}else{
+		game.auto.GCD["other.telluric_autosell"] = Date.now() + 5_000;
+	}
+};
 
 game.auto.Socket_onMessage = function(event) {
 	// console.log("Message received from server:", event.data); // Commented out to prevent console flooding
@@ -1451,7 +1521,8 @@ $(document).ready(() => {
 		locale["UI.windows.auto.setting.rule.nothing"] = {"en": "Do nothing", "fr": "No rien faire"};
 		locale["UI.windows.auto.setting.rule.sit"] = {"en": "Sit and rest", "fr": "S'assoir et se reposer"};
 		
-		locale["UI.windows.auto.setting.craft.autoSell"] = {"en": "Craft: Auto sell all common gear when almost full", "fr": "Artisanat : Vente automatique de tout le matériel commun lorsque le sac est presque plein"};
+		locale["UI.windows.auto.setting.other.craft_autoSell"] = {"en": "Craft: Auto sell all common gear when almost full", "fr": "Artisanat : Vente automatique de tout le matériel commun lorsque le sac est presque plein"};
+		locale["UI.windows.auto.setting.other.telluric_autoSell"] = {"en": "Auto sell telluric items when stack is full", "fr": "Artisanat : Vente automatique les objets telluriques quand le max transporté est atteint"};
 		locale["UI.windows.auto.setting.beta_path_finding"] = {"en": "(Beta) Enable path finding", "fr": "(Beta) Activer le path finding"};
 		
 		game.on.onlineTimeReward_gatherReward = function(oRewards, onlineTimeRewardStep){
