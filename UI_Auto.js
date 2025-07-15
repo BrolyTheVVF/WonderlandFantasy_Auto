@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-12.011
+// @version      2025-07-15.004
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-12.011";
+game.auto.version = "2025-07-15.004";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
@@ -569,6 +569,11 @@ game.auto.onTick = function(){
 	
 	if(game.socket && game.socket.readyState !== game.socket.OPEN && game.auto.current.active === true){
 		document.location = document.location.href;
+		game.auto.current.tickDelay = Date.now() + 500000;
+		return;
+	}
+	if(game.socket && game.socket.onmessage !== game.auto.Socket_onMessage){
+		game.socket.onmessage = game.auto.Socket_onMessage;
 	}
 	
 	if(!game.player){
@@ -748,15 +753,15 @@ game.auto.onTickEvent.combat = function(){
 	}
 	
 	if(game.player.isCasting){
-		if(!game.player.castStart || !game.player.castTime || game.player.castStart + game.player.castTime + (nTimeSecond * 10) > Date.now()){
+		// if(!game.player.castStart || !game.player.castTime || game.player.castStart + game.player.castTime + (nTimeSecond * 10) > Date.now()){
 			//If the casting time (+ 10 second delay to be sure) is not done, then do nothing
 			return;
-		}else{
+		// }else{
 			//If the cast is supposed to be over since at least 10 sec, then it glitched out
-			game.player.castStart = 0;
-			game.player.castTime = 0;
-			game.player.isCasting = false;
-		}
+			// game.player.castStart = 0;
+			// game.player.castTime = 0;
+			// game.player.isCasting = false;
+		// }
 	}
 	
 	let sSkillBase = game.player.classe + "_base";
@@ -845,7 +850,8 @@ game.auto.onTickEvent.reaching = function(){
 	}
 	if(!game.player.isWalking){
 		if(game.path_finding && game.path_finding.enabled && game.auto.current.Reaching_path !== false){
-			if(game.path_finding.current.worker.isSearching){
+			//Searching path, timeout after 20 seconds
+			if(game.path_finding.current.worker.isSearching !== false && game.path_finding.current.worker.isSearching + 20_000 > Date.now()){
 				game.auto.current.tickDelay = Date.now() + 200;
 				return;
 			}
@@ -1350,6 +1356,63 @@ game.auto.registerEvent("onAfter_craft_craftingDone", "AutoSell", function(targe
 		// }
 	}
 });
+
+//Force cooldown on casting skills
+game.auto.registerEvent("onAfter_selfJoined", "Auto_CastingDebug", async function(){
+	for(let k in game.player.skills){
+		let oSkill = game.player.skills[k];
+		if(!oSkill || !oSkill.proto){
+			continue;
+		}
+		if(oSkill.proto.casttime === 0){
+			continue;
+		}
+		oSkill.lastUse = Date.now();
+	}
+});
+
+game.auto.Socket_onMessage = function(event) {
+	// console.log("Message received from server:", event.data); // Commented out to prevent console flooding
+	var dataFromServer = event.data.toString();
+	
+	// Check is Data in json-format
+	if(IsJsonString(dataFromServer)) {
+		var oJson = JSON.parse(dataFromServer);
+		if(oJson.type && oJson.data && Array.isArray(oJson.data)){
+			if(oJson.type == "socketStack"){
+				for(let i = 0; i < oJson.data.length; i++){
+					let oStack = oJson.data[i];
+					if(oStack && oStack.type && oStack.data){
+						if(game.on.hasOwnProperty(oStack.type)){
+							game.auto.triggerEvent("onBefore_" + oStack.type, oStack.data);
+							game.on[oStack.type](...oStack.data);
+							game.auto.triggerEvent("onAfter_" + oStack.type, oStack.data);
+						}else{
+							console.warn("/!\\ Server sent stack event [" + oStack.type + "] but the socket can't handle it yet /!\\");
+							console.warn("/!\\ (" + JSON.stringify(oStack.data) + ") /!\\");
+						}
+					}
+				}
+			}else{
+				if(game.on.hasOwnProperty(oJson.type)){
+					game.auto.triggerEvent("onBefore_" + oJson.type, oJson.data);
+					game.on[oJson.type](...oJson.data);
+					game.auto.triggerEvent("onAfter_" + oJson.type, oJson.data);
+				}else{
+					if(oJson.type == "function"){
+						oJson.data = eval(oJson.data[0]);
+						oJson.data();
+					}else{
+						console.warn("/!\\ Server sent event [" + oJson.type + "] but the socket can't handle it yet /!\\");
+						console.warn("/!\\ (" + JSON.stringify(oJson.data) + ") /!\\");
+					}
+				}
+			}
+		}
+	} else {
+		console.log("Data is not in JSON-Format");
+	}
+};
 
 
 $(document).ready(() => {

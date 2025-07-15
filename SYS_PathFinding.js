@@ -45,13 +45,16 @@ game.path_finding.worker = ((workerUrl) => {
 game.auto.registerEvent("onAfter_playerChangeMap", "PathFinding", async function(){
 	game.path_finding.onMapChange();
 });
-game.auto.registerEvent("onTick", "PathFinding", async function(){
-	if(game.path_finding.current.firstLoad){
-		return;
-	}
-	game.path_finding.current.firstLoad = true;
+game.auto.registerEvent("onAfter_selfJoined", "PathFinding", async function(){
 	game.path_finding.onMapChange();
 });
+// game.auto.registerEvent("onTick", "PathFinding", async function(){
+	// if(game.path_finding.current.firstLoad){
+		// return;
+	// }
+	// game.path_finding.current.firstLoad = true;
+	// game.path_finding.onMapChange();
+// });
 
 
 game.path_finding.onMapChange = async function(){
@@ -152,6 +155,7 @@ game.path_finding.init_worker = function(){
 		
 		if(!game.path_finding.current.collisions.data || !game.path_finding.current.walk_points.data){
 			game.path_finding.current.worker.isError = true;
+			resolve(false);
 			return;
 		}
 		
@@ -171,7 +175,7 @@ game.path_finding.init_worker = function(){
 };
 game.path_finding.find_path = function(oFrom, oTo){
 	return new Promise(async (resolve, reject) => {
-		game.path_finding.current.worker.isSearching = true;
+		game.path_finding.current.worker.isSearching = Date.now();
 		console.log('Searching path :');
 		console.log(JSON.stringify(oFrom));
 		console.log(JSON.stringify(oTo));
@@ -179,6 +183,14 @@ game.path_finding.find_path = function(oFrom, oTo){
 		if(game.path_finding.current.worker.map !== game.player.map){
 			await game.path_finding.init_worker();
 		}
+		
+		if(game.path_finding.current.worker.isError === true){
+			if(game.IS_PTR){console.error("Couldn't find a path because the worker couldn't be properly initialised");}
+			game.path_finding.current.worker.isSearching = false;
+			resolve(null);
+			return;
+		}
+		
 		// let CALL_ID = game.mmrand(1000000,9999999);
 		let CALL_ID = 111111;
 		

@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-15.004]
+
+### ✅ Fixes
+- Added a timeout on pathfinding search so your character don't get stuck standing still when there is an unexpected error
+- Proper error handling in the path finding when there is an error loading the files for etiher the map collisions or the walking points
+- Prevented a infinite refresh loop
+- To fix a server sync bug with skill cooldown, all casting skills will bu forced on CD on the client to be sure the bot won't try to start casting the skill and be stuck in an infinite cast loop
+- Fixed an error with pathfinding on map's that hasn't been configured yet where your character would stand still forever until your target would get in range
+
+
 ## [2025-07-12.011]
 
 ### ➕ Added
