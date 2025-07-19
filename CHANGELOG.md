@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-19.001]
+
+### ➕ Added
+- Added the auto icon on top of the character head to better see when its active (only local, not synched with other players)
+
+
 ## [2025-07-15.005]
 
 ### 💾 Improvements

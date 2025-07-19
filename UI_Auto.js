@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WF Auto Pilot
 // @namespace    http://tampermonkey.net/
-// @version      2025-07-15.005
+// @version      2025-07-19.001
 // @description  try to take over the world! (of WF :mocking:)
 // @author       BrolyTheVVF
 // @match        https://*.wonderland-fantasy.com/
@@ -64,7 +64,7 @@ game.loadExternalJson = function(url) {
 };
 
 game.auto = {};
-game.auto.version = "2025-07-15.005";
+game.auto.version = "2025-07-19.001";
 game.auto.GCD = {
 	"item_pickup": 0,
 	"attack_normal": 0,
@@ -558,6 +558,7 @@ game.auto.start = function(){
 	$("#AUTO_UI_TAB1 .auto-start-btn").html(LC_TEXT(game.lang, 'UI.windows.auto.btn.stop'));
 	if(game.player){
 		game.auto.setSetting("CharacterSelected", game.player.uid);
+		game.player.addBuff({"id": "B_MN_AUTO_MODE","stacks":[]});
 	}
 };
 game.auto.stop = function(){
@@ -566,6 +567,7 @@ game.auto.stop = function(){
 	//Only update if you are in game in case you  press n by mistake on the character selection waiting for the game to load back in
 	if(game.player){
 		game.auto.setSetting("CharacterSelected", false);
+		game.player.removeBuff("B_MN_AUTO_MODE");
 	}
 };
 
@@ -1492,6 +1494,7 @@ $(document).ready(() => {
 		try{
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'hello.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'UI_Debug_Stylesheet.js?v=' + game.auto.version);
+			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'UI_Debug_Particle.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'SYS_MemLeak.js?v=' + game.auto.version);
 			await game.loadExternalScript(game.EXT_SOURCE_PATH + 'SYS_PathFinding.js?v=' + game.auto.version);
 		}catch(e){
