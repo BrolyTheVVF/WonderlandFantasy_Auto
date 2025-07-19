@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file.
 - Add auto quest
 - Better targetting choice: Add LoS check, prioritize ennemies that are already attacking you, even more if they attack from distance and are chief
 - In the setting, be able to toggle base attacks
-- Add the little auto floating on top of the head (local only)
 - Do devil transport
 
 ---
