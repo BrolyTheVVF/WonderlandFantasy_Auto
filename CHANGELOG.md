@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2025-07-23.001]
+
+### ✅ Fixes
+- Reset the castbar when character is dead, as dying while casting would make your character stuck in casting forever
+
+
 ## [2025-07-19.001]
 
 ### ➕ Added
