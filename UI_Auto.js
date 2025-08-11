@@ -1345,7 +1345,7 @@ game.auto.registerEvent("onAfterDamage", "AutoLock", function(targetUid, oDamage
 		// console.log("game.auto.event::onAfterDamage.lockOn => ", game.player.lockOn);
 		return;
 	}
-	if(game.entities[fromUid].isPC){
+	if(!game.entities[fromUid] || game.entities[fromUid].isPC){
 		return;
 	}
 	game.player.setLockON(game.entities[fromUid]);
