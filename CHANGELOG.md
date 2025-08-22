@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Better targetting choice: Add LoS check, prioritize ennemies that are already attacking you, even more if they attack from distance and are chief
 - In the setting, be able to toggle base attacks
 - Do devil transport
+- Auto refresh page every X hours (add config)
 
 ---
 
